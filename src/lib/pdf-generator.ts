@@ -226,7 +226,9 @@ export class TravelItineraryPDFGenerator {
 
     // Developer credit below
     this.doc.setFontSize(this.config.fonts.caption.size);
+    this.doc.setFontSize(this.config.fonts.caption.size + 2);
     this.doc.text('Developed by Richad Ali', margins.left, 22);
+    this.doc.setFontSize(this.config.fonts.caption.size);
 
     // Main title - Travel Itinerary
     this.doc.setFontSize(this.config.fonts.heading.size);
@@ -314,7 +316,9 @@ export class TravelItineraryPDFGenerator {
             cellPadding: 3,
             textColor: this.config.colors.text,
             overflow: 'linebreak',
-            cellWidth: 'wrap'
+            cellWidth: 'wrap',
+            font: 'helvetica',
+            fontStyle: 'normal'
           },
           headStyles: { 
             fillColor: this.config.colors.secondary,
@@ -328,6 +332,21 @@ export class TravelItineraryPDFGenerator {
             1: { cellWidth: Math.floor(availableWidth * 0.15), overflow: 'linebreak' }, // Activity - 15%
             2: { cellWidth: Math.floor(availableWidth * 0.55), overflow: 'linebreak' }, // Description - 55%
             3: { cellWidth: Math.floor(availableWidth * 0.15), halign: 'right', overflow: 'linebreak' } // Cost - 15%
+          },
+          didParseCell: function(data) {
+            // Ensure consistent font for all cells
+            if (data.section === 'body' || data.section === 'head') {
+              data.cell.styles.font = 'helvetica';
+              data.cell.styles.fontStyle = data.section === 'head' ? 'bold' : 'normal';
+              
+              // Ensure proper text rendering for special characters
+              if (data.column.index === 2 && data.section === 'body') {
+                // Make sure description text has proper spacing
+                data.cell.text = data.cell.text.map(text => 
+                  typeof text === 'string' ? text.replace(/\s+/g, ' ').trim() : text
+                );
+              }
+            }
           }
         });
 
@@ -382,9 +401,17 @@ export class TravelItineraryPDFGenerator {
           tableWidth: 'auto',
           didParseCell: function(data) {
             // Ensure consistent font for all cells
-            if (data.section === 'body') {
+            if (data.section === 'body' || data.section === 'head') {
               data.cell.styles.font = 'helvetica';
-              data.cell.styles.fontStyle = 'normal';
+              data.cell.styles.fontStyle = data.section === 'head' ? 'bold' : 'normal';
+              
+              // Ensure proper text rendering for special characters
+              if (data.column.index === 2 && data.section === 'body') {
+                // Make sure description text has proper spacing
+                data.cell.text = data.cell.text.map(text => 
+                  typeof text === 'string' ? text.replace(/\s+/g, ' ').trim() : text
+                );
+              }
             }
           }
         });
@@ -423,7 +450,9 @@ export class TravelItineraryPDFGenerator {
         cellPadding: 3,
         textColor: this.config.colors.text,
         overflow: 'linebreak',
-        cellWidth: 'wrap'
+        cellWidth: 'wrap',
+        font: 'helvetica',
+        fontStyle: 'normal'
       },
       headStyles: { 
         fillColor: this.config.colors.primary,
@@ -437,6 +466,21 @@ export class TravelItineraryPDFGenerator {
         2: { cellWidth: Math.floor(availableWidth * 0.35), overflow: 'linebreak' }, // Description - 35%
         3: { cellWidth: Math.floor(availableWidth * 0.15), halign: 'right', overflow: 'linebreak' }, // Price - 15%
         4: { cellWidth: Math.floor(availableWidth * 0.20), overflow: 'linebreak' } // Amenities - 20%
+      },
+      didParseCell: function(data) {
+        // Ensure consistent font for all cells
+        if (data.section === 'body' || data.section === 'head') {
+          data.cell.styles.font = 'helvetica';
+          data.cell.styles.fontStyle = data.section === 'head' ? 'bold' : 'normal';
+          
+          // Ensure proper text rendering for special characters
+          if (data.column.index === 2 && data.section === 'body') {
+            // Make sure description text has proper spacing
+            data.cell.text = data.cell.text.map(text => 
+              typeof text === 'string' ? text.replace(/\s+/g, ' ').trim() : text
+            );
+          }
+        }
       }
     });
 
@@ -471,7 +515,9 @@ export class TravelItineraryPDFGenerator {
         cellPadding: 3,
         textColor: this.config.colors.text,
         overflow: 'linebreak',
-        cellWidth: 'wrap'
+        cellWidth: 'wrap',
+        font: 'helvetica',
+        fontStyle: 'normal'
       },
       headStyles: { 
         fillColor: this.config.colors.primary,
@@ -481,9 +527,24 @@ export class TravelItineraryPDFGenerator {
       alternateRowStyles: { fillColor: this.config.colors.background },
       columnStyles: {
         0: { cellWidth: Math.floor(availableWidth * 0.15), overflow: 'linebreak' }, // Type - 15%
-        1: { cellWidth: Math.floor(availableWidth * 0.50), overflow: 'linebreak' }, // Description - 50%
+        1: { cellWidth: Math.floor(availableWidth * 0.45), overflow: 'linebreak' }, // Description - 45%
         2: { cellWidth: Math.floor(availableWidth * 0.15), halign: 'right', overflow: 'linebreak' }, // Cost - 15%
-        3: { cellWidth: Math.floor(availableWidth * 0.20), overflow: 'linebreak' } // Recommended For - 20%
+        3: { cellWidth: Math.floor(availableWidth * 0.25), overflow: 'linebreak' } // Recommended For - 25%
+      },
+      didParseCell: function(data) {
+        // Ensure consistent font for all cells
+        if (data.section === 'body' || data.section === 'head') {
+          data.cell.styles.font = 'helvetica';
+          data.cell.styles.fontStyle = data.section === 'head' ? 'bold' : 'normal';
+          
+          // Ensure proper text rendering for special characters
+          if (data.column.index === 1 && data.section === 'body') {
+            // Make sure description text has proper spacing
+            data.cell.text = data.cell.text.map(text => 
+              typeof text === 'string' ? text.replace(/\s+/g, ' ').trim() : text
+            );
+          }
+        }
       }
     });
 
@@ -518,7 +579,9 @@ export class TravelItineraryPDFGenerator {
         cellPadding: 3,
         textColor: this.config.colors.text,
         overflow: 'linebreak',
-        cellWidth: 'wrap'
+        cellWidth: 'wrap',
+        font: 'helvetica',
+        fontStyle: 'normal'
       },
       headStyles: { 
         fillColor: this.config.colors.accent,
@@ -536,6 +599,13 @@ export class TravelItineraryPDFGenerator {
       columnStyles: {
         0: { cellWidth: Math.floor(availableWidth * 0.70), overflow: 'linebreak' }, // Category - 70%
         1: { cellWidth: Math.floor(availableWidth * 0.30), halign: 'right', overflow: 'linebreak' } // Amount - 30%
+      },
+      didParseCell: function(data) {
+        // Ensure consistent font for all cells
+        if (data.section === 'body' || data.section === 'head' || data.section === 'foot') {
+          data.cell.styles.font = 'helvetica';
+          data.cell.styles.fontStyle = data.section === 'body' ? 'normal' : 'bold';
+        }
       }
     });
 
@@ -562,8 +632,11 @@ export class TravelItineraryPDFGenerator {
       const textX = leftMargin + 8;
       const maxWidth = this.pageWidth - this.config.margins.left - this.config.margins.right - 10;
 
+      // Normalize the text to ensure proper spacing
+      const normalizedTip = tip.replace(/\s+/g, ' ').trim();
+
       // Calculate how much space this tip will need
-      const wrappedText = this.doc.splitTextToSize(tip, maxWidth);
+      const wrappedText = this.doc.splitTextToSize(normalizedTip, maxWidth);
       const requiredSpace = (wrappedText.length * 4) + 3;
       
       // Check if we need a new page for this tip
@@ -592,8 +665,11 @@ export class TravelItineraryPDFGenerator {
       this.doc.setTextColor(this.config.colors.text);
       
       const cuisineText = itinerary.localCuisine.join(', ');
+      // Normalize the text to ensure proper spacing
+      const normalizedCuisineText = cuisineText.replace(/\s+/g, ' ').trim();
+      
       const maxWidth = this.pageWidth - this.config.margins.left - this.config.margins.right;
-      const wrappedCuisine = this.doc.splitTextToSize(cuisineText, maxWidth);
+      const wrappedCuisine = this.doc.splitTextToSize(normalizedCuisineText, maxWidth);
       this.doc.text(wrappedCuisine, this.config.margins.left, this.currentY);
       this.currentY += wrappedCuisine.length * 4;
     }
