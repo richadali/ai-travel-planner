@@ -18,14 +18,20 @@ interface ItineraryDisplayProps {
     budget: number;
     currency?: string;
   };
+  tripId?: string;
+  isSharedView?: boolean;
 }
 
 export const ItineraryDisplay: React.FC<ItineraryDisplayProps> = ({
   itinerary,
   className,
   tripMetadata,
+  tripId,
+  isSharedView = false,
 }) => {
   const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
+  const [isSharing, setIsSharing] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   // Format currency
   const formatCurrency = (amount: number) => {
@@ -35,19 +41,119 @@ export const ItineraryDisplay: React.FC<ItineraryDisplayProps> = ({
     }).format(amount);
   };
 
-  const handleShare = () => {
-    if (navigator.share) {
-      navigator.share({
-        title: 'My Travel Itinerary',
-        text: `Check out my travel plan for ${itinerary.days.length} days!`,
-        url: window.location.href,
-      })
-      .catch((error) => console.log('Error sharing', error));
-    } else {
-      // Fallback for browsers that don't support the Web Share API
-      navigator.clipboard.writeText(window.location.href)
-        .then(() => alert('Link copied to clipboard!'))
-        .catch(() => alert('Failed to copy link'));
+  const handleShare = async () => {
+    if (!tripMetadata) {
+      alert('Trip information is not available for sharing.');
+      return;
+    }
+
+    try {
+      setIsSharing(true);
+      setErrorMessage(null);
+
+      let currentTripId = tripId;
+
+      // If we don't have a tripId, we need to save the trip first
+      if (!currentTripId) {
+        console.log('Saving trip before sharing...');
+        
+        try {
+          const saveResponse = await fetch('/api/trips', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              destination: tripMetadata.destination,
+              duration: tripMetadata.duration,
+              peopleCount: tripMetadata.peopleCount,
+              budget: tripMetadata.budget,
+              currency: tripMetadata.currency || 'INR',
+              itinerary: itinerary,
+            }),
+          });
+
+          const responseText = await saveResponse.text();
+          console.log('Save trip response:', responseText);
+          
+          let saveData;
+          try {
+            saveData = JSON.parse(responseText);
+          } catch (parseError) {
+            console.error('Failed to parse save response:', parseError);
+            throw new Error(`Invalid response: ${responseText.substring(0, 100)}...`);
+          }
+          
+          if (!saveResponse.ok) {
+            throw new Error(saveData.error || 'Failed to save trip');
+          }
+
+          currentTripId = saveData.trip.id;
+          console.log('Trip saved with ID:', currentTripId);
+        } catch (saveError: any) {
+          console.error('Error saving trip:', saveError);
+          throw new Error(`Failed to save trip: ${saveError.message}`);
+        }
+      }
+
+      // Create share link
+      console.log('Creating share link for trip ID:', currentTripId);
+      
+      try {
+        const shareResponse = await fetch('/api/trips/share', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            tripId: currentTripId,
+            ownerName: 'Travel Planner User',
+            expiryDays: 30,
+          }),
+        });
+
+        const responseText = await shareResponse.text();
+        console.log('Share response:', responseText);
+        
+        let shareData;
+        try {
+          shareData = JSON.parse(responseText);
+        } catch (parseError) {
+          console.error('Failed to parse share response:', parseError);
+          throw new Error(`Invalid response: ${responseText.substring(0, 100)}...`);
+        }
+        
+        if (!shareResponse.ok) {
+          throw new Error(shareData.error || 'Failed to create share link');
+        }
+
+        const shareUrl = shareData.shareUrl;
+        console.log('Share URL created:', shareUrl);
+
+        // Use native share API if available, otherwise copy to clipboard
+        if (navigator.share) {
+          await navigator.share({
+            title: `Travel Itinerary for ${tripMetadata.destination}`,
+            text: `Check out my ${tripMetadata.duration}-day travel plan for ${tripMetadata.destination}!`,
+            url: shareUrl,
+          });
+          console.log('Shared via Web Share API');
+        } else {
+          // Fallback for browsers that don't support the Web Share API
+          await navigator.clipboard.writeText(shareUrl);
+          alert('Share link copied to clipboard!');
+          console.log('Share link copied to clipboard');
+        }
+      } catch (shareError: any) {
+        console.error('Error creating share link:', shareError);
+        throw new Error(`Failed to create share link: ${shareError.message}`);
+      }
+    } catch (error: any) {
+      console.error('Error sharing:', error);
+      setErrorMessage(error.message);
+      alert(`Failed to share: ${error.message}`);
+    } finally {
+      setIsSharing(false);
     }
   };
 
@@ -59,6 +165,68 @@ export const ItineraryDisplay: React.FC<ItineraryDisplayProps> = ({
 
     try {
       setIsGeneratingPDF(true);
+      setErrorMessage(null);
+
+      let currentTripId = tripId;
+
+      // If we don't have a tripId, we need to save the trip first
+      if (!currentTripId) {
+        console.log('Saving trip before downloading PDF...');
+        
+        try {
+          const saveResponse = await fetch('/api/trips', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              destination: tripMetadata.destination,
+              duration: tripMetadata.duration,
+              peopleCount: tripMetadata.peopleCount,
+              budget: tripMetadata.budget,
+              currency: tripMetadata.currency || 'INR',
+              itinerary: itinerary,
+            }),
+          });
+
+          const responseText = await saveResponse.text();
+          console.log('Save trip response:', responseText);
+          
+          let saveData;
+          try {
+            saveData = JSON.parse(responseText);
+          } catch (parseError) {
+            console.error('Failed to parse save response:', parseError);
+            throw new Error(`Invalid response: ${responseText.substring(0, 100)}...`);
+          }
+          
+          if (!saveResponse.ok) {
+            throw new Error(saveData.error || 'Failed to save trip');
+          }
+
+          currentTripId = saveData.trip.id;
+          console.log('Trip saved with ID:', currentTripId);
+        } catch (saveError: any) {
+          console.error('Error saving trip:', saveError);
+          throw new Error(`Failed to save trip: ${saveError.message}`);
+        }
+      }
+
+      // Track the download
+      console.log('Tracking download for trip ID:', currentTripId);
+      
+      fetch('/api/trips/download', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          tripId: currentTripId,
+          downloadType: 'pdf',
+        }),
+      }).catch(error => {
+        console.error('Failed to track download:', error);
+      });
 
       // Prepare metadata for PDF generation
       const pdfMetadata = {
@@ -71,6 +239,8 @@ export const ItineraryDisplay: React.FC<ItineraryDisplayProps> = ({
         ownerName: 'Travel Planner User'
       };
 
+      console.log('Generating PDF...');
+      
       // Generate and download the PDF
       await generateTravelItineraryPDF(
         itinerary, 
@@ -78,8 +248,10 @@ export const ItineraryDisplay: React.FC<ItineraryDisplayProps> = ({
         `${tripMetadata.destination.replace(/\s+/g, '_')}_Travel_Itinerary.pdf`
       );
 
-    } catch (error) {
+      console.log('PDF generated successfully');
+    } catch (error: any) {
       console.error('Error generating PDF:', error);
+      setErrorMessage(error.message);
       alert('Failed to generate PDF. Please try again.');
     } finally {
       setIsGeneratingPDF(false);
@@ -89,17 +261,41 @@ export const ItineraryDisplay: React.FC<ItineraryDisplayProps> = ({
   return (
     <div className={cn("space-y-10 mx-auto max-w-5xl", className)}>
       <div className="text-center max-w-3xl mx-auto">
-        <h2 className="text-3xl md:text-4xl font-bold mb-4">Your Travel Itinerary</h2>
+        <h2 className="text-3xl md:text-4xl font-bold mb-4">
+          {isSharedView ? 'Shared Travel Itinerary' : 'Your Travel Itinerary'}
+        </h2>
         <p className="text-xl text-muted-foreground">
-          Here's your personalized travel plan with daily activities, accommodations, and budget breakdown.
+          {isSharedView 
+            ? "Here's a personalized travel plan shared with you!" 
+            : "Here's your personalized travel plan with daily activities, accommodations, and budget breakdown."
+          }
         </p>
+        
+        {errorMessage && (
+          <div className="mt-4 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg text-red-800 dark:text-red-200 text-sm">
+            Error: {errorMessage}
+          </div>
+        )}
         
         <div className="flex justify-center gap-3 mt-6 no-print">
           <button 
             onClick={handleShare}
-            className="bg-blue-100 hover:bg-blue-200 dark:bg-blue-900/30 dark:hover:bg-blue-800/50 text-blue-800 dark:text-blue-300 px-4 py-2 rounded-lg font-medium transition-colors flex items-center"
+            disabled={isSharing}
+            className="bg-blue-100 hover:bg-blue-200 dark:bg-blue-900/30 dark:hover:bg-blue-800/50 text-blue-800 dark:text-blue-300 px-4 py-2 rounded-lg font-medium transition-colors flex items-center disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            <Share2 className="mr-2 h-4 w-4" /> Share Itinerary
+            {isSharing ? (
+              <>
+                <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-current" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                Sharing...
+              </>
+            ) : (
+              <>
+                <Share2 className="mr-2 h-4 w-4" /> Share Itinerary
+              </>
+            )}
           </button>
           <button 
             onClick={handleDownloadPDF}
@@ -434,9 +630,22 @@ export const ItineraryDisplay: React.FC<ItineraryDisplayProps> = ({
       <div className="flex justify-center gap-4 pt-8 border-t border-slate-200 dark:border-slate-800 no-print">
         <button 
           onClick={handleShare}
-          className="bg-blue-100 hover:bg-blue-200 dark:bg-blue-900/30 dark:hover:bg-blue-800/50 text-blue-800 dark:text-blue-300 px-4 py-2 rounded-lg font-medium transition-colors flex items-center"
+          disabled={isSharing}
+          className="bg-blue-100 hover:bg-blue-200 dark:bg-blue-900/30 dark:hover:bg-blue-800/50 text-blue-800 dark:text-blue-300 px-4 py-2 rounded-lg font-medium transition-colors flex items-center disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          <Share2 className="mr-2 h-4 w-4" /> Share Itinerary
+          {isSharing ? (
+            <>
+              <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-current" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              </svg>
+              Sharing...
+            </>
+          ) : (
+            <>
+              <Share2 className="mr-2 h-4 w-4" /> Share Itinerary
+            </>
+          )}
         </button>
         <button 
           onClick={handleDownloadPDF}

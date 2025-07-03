@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { nanoid } from "nanoid";
-import { getTripById, updateTrip } from "@/lib/database";
+import { getTripById, updateTrip, getTripByShareId } from "@/lib/database";
+import { AnalyticsService } from "@/lib/analytics";
 
 // Schema for share request
 const ShareRequestSchema = z.object({
@@ -40,6 +41,15 @@ export async function POST(request: NextRequest) {
       shareId,
       shareExpiry: shareExpiry.toISOString(),
       ownerName: ownerName || undefined,
+    });
+    
+    // Track the share action
+    AnalyticsService.trackTripShare({
+      tripId,
+      shareId,
+      request,
+    }).catch(error => {
+      console.error("Failed to track trip share:", error);
     });
     
     // Construct share URL
@@ -105,14 +115,16 @@ export async function GET(request: NextRequest) {
     }
     
     // Check if the share link has expired
-    const shareExpiry = new Date(trip.shareExpiry as string);
-    if (shareExpiry < new Date()) {
-      return NextResponse.json({ 
-        success: false, 
-        error: "Share link has expired" 
-      }, { 
-        status: 410 // Gone
-      });
+    if (trip.shareExpiry) {
+      const shareExpiry = new Date(trip.shareExpiry);
+      if (shareExpiry < new Date()) {
+        return NextResponse.json({ 
+          success: false, 
+          error: "Share link has expired" 
+        }, { 
+          status: 410 // Gone
+        });
+      }
     }
     
     // Return the trip data
@@ -139,17 +151,5 @@ export async function GET(request: NextRequest) {
     }, { 
       status: 500 
     });
-  }
-}
-
-// Helper function to get a trip by share ID (this would be implemented in database.ts)
-async function getTripByShareId(shareId: string) {
-  try {
-    // This is a placeholder implementation
-    // In a real application, this would query the database by shareId
-    return { shareExpiry: new Date().toISOString() }; // Just a placeholder
-  } catch (error) {
-    console.error("Database error:", error);
-    throw new Error("Failed to retrieve shared trip");
   }
 } 

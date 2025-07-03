@@ -9,6 +9,42 @@ An AI-powered travel planning application that generates personalized travel iti
 - Save and manage multiple travel plans
 - Responsive design with dark/light mode support
 
+## Analytics System
+
+The application includes a comprehensive analytics tracking system to monitor site usage and itinerary generations:
+
+### Features
+
+- **Page View Tracking**: Automatically tracks all page visits with referrer information
+- **Itinerary Generation Tracking**: Records all travel plan generations with success/failure status
+- **Performance Monitoring**: Tracks API response times for optimization
+- **Daily Summaries**: Aggregates data into daily summaries for trend analysis
+- **Top Destinations**: Identifies most popular travel destinations
+- **Admin Dashboard**: Visual analytics dashboard with charts and filters
+
+### Implementation
+
+The analytics system consists of:
+
+1. **Database Schema**: Dedicated tables for page views, itinerary generations, and daily summaries
+2. **Middleware**: Automatic page view tracking via Next.js middleware
+3. **Service Layer**: `AnalyticsService` for tracking and retrieving analytics data
+4. **API Integration**: Integrated with travel plan generation API
+5. **Admin Dashboard**: Visual interface for viewing analytics data
+
+### Admin Access
+
+To access the analytics dashboard:
+
+1. Navigate to `/admin/analytics`
+2. For production environments, configure the `ADMIN_API_KEY` environment variable for secure access
+
+### Privacy Considerations
+
+- IP addresses are stored for unique visitor counting but can be anonymized
+- User agents are stored for browser/device analytics
+- No personally identifiable information is collected unless a user is logged in
+
 ## Tech Stack
 
 ### Frontend

@@ -96,7 +96,7 @@ export async function getTripById(tripId: string) {
  */
 export async function getTripByShareId(shareId: string) {
   try {
-    return await prisma.trip.findFirst({
+    return await prisma.trip.findUnique({
       where: {
         shareId,
       },
