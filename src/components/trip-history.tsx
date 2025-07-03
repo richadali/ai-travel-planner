@@ -3,6 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
+import { Calendar, Users, IndianRupee } from "lucide-react";
 
 interface Trip {
   id: string;
@@ -99,14 +100,25 @@ export const TripHistory: React.FC<TripHistoryProps> = ({
               className="block"
             >
               <div className="border border-slate-200 dark:border-slate-700 rounded-lg p-4 hover:bg-slate-50 dark:hover:bg-slate-900 transition-colors">
-                <div className="flex justify-between items-start">
+                <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-3">
                   <div>
-                    <h3 className="font-medium text-lg">{trip.destination}</h3>
-                    <p className="text-sm text-slate-500 dark:text-slate-400">
-                      {trip.duration} days • {trip.peopleCount} people • Created on {formatDate(trip.createdAt)}
-                    </p>
+                    <h3 className="font-medium text-lg mb-1">{trip.destination}</h3>
+                    <div className="flex flex-wrap gap-3 text-sm text-slate-500 dark:text-slate-400">
+                      <span className="flex items-center">
+                        <Calendar className="w-4 h-4 mr-1" />
+                        {trip.duration} days
+                      </span>
+                      <span className="flex items-center">
+                        <Users className="w-4 h-4 mr-1" />
+                        {trip.peopleCount} people
+                      </span>
+                      <span>
+                        Created on {formatDate(trip.createdAt)}
+                      </span>
+                    </div>
                   </div>
-                  <div className="font-medium">
+                  <div className="font-medium flex items-center bg-green-50 dark:bg-green-900/20 text-green-800 dark:text-green-300 px-3 py-1.5 rounded-md self-start md:self-auto">
+                    <IndianRupee className="w-4 h-4 mr-1" />
                     {formatCurrency(trip.budget, trip.currency)}
                   </div>
                 </div>

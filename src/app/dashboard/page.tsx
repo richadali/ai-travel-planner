@@ -5,6 +5,8 @@ import { Header } from "@/components/header";
 import { Footer } from "@/components/footer";
 import { TripHistory } from "@/components/trip-history";
 import { LoadingSpinner } from "@/components/loading-spinner";
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
 
 // Mock user ID for demonstration purposes
 const MOCK_USER_ID = "user-123";
@@ -18,6 +20,9 @@ interface Trip {
   currency: string;
   createdAt: string;
 }
+
+// Note: Metadata must be in a server component, not a client component
+// We'll create a separate layout.tsx file for this page to add metadata
 
 export default function Dashboard() {
   const [trips, setTrips] = useState<Trip[]>([]);
@@ -53,13 +58,20 @@ export default function Dashboard() {
   return (
     <div className="flex min-h-screen flex-col">
       <Header />
-      <main className="flex-1 container py-8 px-4 md:px-6">
+      <main className="flex-1 container mx-auto py-8 px-4 md:px-6 max-w-7xl">
         <div className="flex flex-col space-y-8">
-          <div>
-            <h1 className="text-3xl font-bold mb-2">Your Dashboard</h1>
-            <p className="text-muted-foreground">
-              View and manage your travel plans
-            </p>
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+            <div>
+              <h1 className="text-3xl font-bold mb-2">Your Dashboard</h1>
+              <p className="text-muted-foreground">
+                View and manage your travel plans
+              </p>
+            </div>
+            <Link href="/">
+              <Button className="w-full md:w-auto">
+                Create New Trip
+              </Button>
+            </Link>
           </div>
 
           {error && (

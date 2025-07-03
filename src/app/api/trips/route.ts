@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getUserTrips } from "@/lib/database";
 
+// Add cache configuration
+export const revalidate = 60; // Revalidate every 60 seconds
+
 export async function GET(request: NextRequest) {
   try {
     // Get query parameters
@@ -21,9 +24,14 @@ export async function GET(request: NextRequest) {
     // Get trips for the user
     const trips = await getUserTrips(userId, limit, offset);
     
+    // Return response with cache headers
     return NextResponse.json({ 
       success: true, 
       trips 
+    }, {
+      headers: {
+        'Cache-Control': 'public, s-maxage=60, stale-while-revalidate=300'
+      }
     });
   } catch (error: any) {
     console.error("Error fetching trips:", error);

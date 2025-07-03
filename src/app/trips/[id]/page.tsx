@@ -1,14 +1,18 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, Suspense } from "react";
 import { useParams } from "next/navigation";
 import { Header } from "@/components/header";
 import { Footer } from "@/components/footer";
-import { ItineraryDisplay } from "@/components/itinerary-display";
 import { LoadingSpinner } from "@/components/loading-spinner";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { ItineraryType } from "@/types";
+
+// Lazy load the ItineraryDisplay component
+const ItineraryDisplay = React.lazy(() => import("@/components/itinerary-display").then(mod => ({ 
+  default: mod.ItineraryDisplay 
+})));
 
 interface Trip {
   id: string;
@@ -68,7 +72,7 @@ export default function TripDetail() {
   return (
     <div className="flex min-h-screen flex-col">
       <Header />
-      <main className="flex-1 container py-8 px-4 md:px-6">
+      <main className="flex-1 container mx-auto py-8 px-4 md:px-6 max-w-7xl">
         {isLoading ? (
           <div className="flex justify-center py-12">
             <LoadingSpinner size="lg" />
@@ -96,7 +100,18 @@ export default function TripDetail() {
               </Link>
             </div>
 
-            <ItineraryDisplay itinerary={trip.itinerary} />
+            <Suspense fallback={<div className="flex justify-center py-12"><LoadingSpinner size="lg" /></div>}>
+              <ItineraryDisplay 
+                itinerary={trip.itinerary}
+                tripMetadata={{
+                  destination: trip.destination,
+                  duration: trip.duration,
+                  peopleCount: trip.peopleCount,
+                  budget: trip.budget,
+                  currency: trip.currency,
+                }}
+              />
+            </Suspense>
           </div>
         ) : (
           <div className="text-center py-12">
