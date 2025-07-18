@@ -6,44 +6,92 @@ generator client {
 datasource db {
   provider = "mysql"
   url      = env("DATABASE_URL")
+  relationMode = "foreignKeys"
 }
 
 model User {
-  id        String   @id @default(uuid())
-  email     String   @unique
-  name      String
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
+  id            String    @id @default(uuid())
+  email         String    @unique
+  name          String?   @db.VarChar(255)
+  image         String?   @db.VarChar(255)
+  emailVerified DateTime?
+  accounts      Account[]
+  sessions      Session[]
+  trips         Trip[]
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime  @updatedAt @map("updated_at")
 
   @@map("users")
 }
 
+model Account {
+  id                String  @id @default(uuid())
+  userId            String  @map("user_id")
+  type              String  @db.VarChar(50)
+  provider          String  @db.VarChar(50)
+  providerAccountId String  @map("provider_account_id") @db.VarChar(100)
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String? @db.VarChar(50)
+  scope             String? @db.VarChar(100)
+  id_token          String? @db.Text
+  session_state     String? @db.VarChar(100)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@index([userId])
+  @@map("accounts")
+}
+
+model Session {
+  id           String   @id @default(uuid())
+  sessionToken String   @unique @map("session_token") @db.VarChar(100)
+  userId       String   @map("user_id")
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("sessions")
+}
+
+model VerificationToken {
+  identifier String   @db.VarChar(100)
+  token      String   @db.VarChar(100)
+  expires    DateTime
+
+  @@unique([identifier, token])
+  @@map("verification_tokens")
+}
+
 model Admin {
-  id             String   @id @default(uuid())
-  email          String   @unique
-  passwordHash   String   @map("password_hash")
-  name           String?
+  id             String    @id @default(uuid())
+  email          String    @unique
+  passwordHash   String    @map("password_hash")
+  name           String?   @db.VarChar(255)
   lastLoginAt    DateTime? @map("last_login_at")
-  createdAt      DateTime @default(now()) @map("created_at")
-  updatedAt      DateTime @updatedAt @map("updated_at")
+  createdAt      DateTime  @default(now()) @map("created_at")
+  updatedAt      DateTime  @updatedAt @map("updated_at")
 
   @@map("admins")
 }
 
 model Trip {
-  id          String   @id @default(uuid())
-  userId      String?  @map("user_id")
-  destination String
+  id          String    @id @default(uuid())
+  userId      String?   @map("user_id")
+  user        User?     @relation(fields: [userId], references: [id], onDelete: SetNull)
+  destination String    @db.VarChar(255)
   duration    Int
-  peopleCount Int      @map("people_count")
+  peopleCount Int       @map("people_count")
   budget      Float
-  currency    String   @default("USD")
+  currency    String    @default("USD") @db.VarChar(3)
   itinerary   Json
-  shareId     String?  @unique @map("share_id")
+  shareId     String?   @unique @map("share_id") @db.VarChar(100)
   shareExpiry DateTime? @map("share_expiry")
-  ownerName   String?  @map("owner_name")
-  createdAt   DateTime @default(now()) @map("created_at")
-  updatedAt   DateTime @updatedAt @map("updated_at")
+  ownerName   String?   @map("owner_name") @db.VarChar(255)
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
 
   @@index([userId], map: "trips_user_id_fkey")
   @@index([shareId])
@@ -53,15 +101,15 @@ model Trip {
 model ItineraryGeneration {
   id           String   @id @default(uuid())
   userId       String?  @map("user_id")
-  destination  String
+  destination  String   @db.VarChar(255)
   duration     Int
   peopleCount  Int      @map("people_count")
   budget       Float
-  currency     String   @default("USD")
+  currency     String   @default("USD") @db.VarChar(3)
   successful   Boolean  @default(true)
   errorMessage String?  @map("error_message") @db.Text
   responseTime Int?     @map("response_time")
-  ipAddress    String?  @map("ip_address")
+  ipAddress    String?  @map("ip_address") @db.VarChar(45)
   userAgent    String?  @map("user_agent") @db.Text
   createdAt    DateTime @default(now()) @map("created_at")
 
@@ -74,9 +122,9 @@ model ItineraryGeneration {
 model PageView {
   id        String   @id @default(uuid())
   userId    String?  @map("user_id")
-  path      String
-  referrer  String?
-  ipAddress String?  @map("ip_address")
+  path      String   @db.VarChar(255)
+  referrer  String?  @db.VarChar(255)
+  ipAddress String?  @map("ip_address") @db.VarChar(45)
   userAgent String?  @map("user_agent") @db.Text
   duration  Int?
   createdAt DateTime @default(now()) @map("created_at")
@@ -90,9 +138,9 @@ model PageView {
 model TripShare {
   id        String   @id @default(uuid())
   tripId    String   @map("trip_id")
-  shareId   String   @map("share_id")
+  shareId   String   @map("share_id") @db.VarChar(100)
   userId    String?  @map("user_id")
-  ipAddress String?  @map("ip_address")
+  ipAddress String?  @map("ip_address") @db.VarChar(45)
   userAgent String?  @map("user_agent") @db.Text
   createdAt DateTime @default(now()) @map("created_at")
 
@@ -106,8 +154,8 @@ model TripDownload {
   id           String   @id @default(uuid())
   tripId       String   @map("trip_id")
   userId       String?  @map("user_id")
-  downloadType String   @map("download_type") // 'pdf'
-  ipAddress    String?  @map("ip_address")
+  downloadType String   @map("download_type") @db.VarChar(10)
+  ipAddress    String?  @map("ip_address") @db.VarChar(45)
   userAgent    String?  @map("user_agent") @db.Text
   createdAt    DateTime @default(now()) @map("created_at")
 

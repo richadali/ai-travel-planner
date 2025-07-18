@@ -1,12 +1,19 @@
 import { NextRequest, NextResponse } from "next/server";
-import { TripRequestSchema } from "@/lib/validations";
-import { generateTravelPlan, InvalidDestinationError } from "@/lib/gemini";
-import { AnalyticsService } from "@/lib/analytics";
-// import { createTrip } from "@/lib/database";
+import { z } from "zod";
+import { generateTravelPlan } from "@/lib/gemini";
+import { getCurrentUserId } from "@/lib/auth";
+
+const TripRequestSchema = z.object({
+  destination: z.string().min(1, "Destination is required"),
+  duration: z.number().min(1, "Duration must be at least 1 day").max(30, "Duration cannot exceed 30 days"),
+  peopleCount: z.number().min(1, "Number of people must be at least 1").max(20, "Number of people cannot exceed 20"),
+  budget: z.number().min(100, "Budget must be at least 100"),
+  currency: z.string().default("INR"),
+});
 
 export async function POST(request: NextRequest) {
   const startTime = Date.now();
-  let successful = false;
+  let successful = true;
   let errorMessage = null;
   
   try {
@@ -14,166 +21,154 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const validatedData = TripRequestSchema.parse(body);
     
-    console.log("Generating travel plan for:", validatedData);
-    
-    // Generate travel plan using Gemini AI
+    // Generate the travel plan using Gemini AI
     const itinerary = await generateTravelPlan(validatedData);
     
-    // Mark as successful for analytics
-    successful = true;
+    // Get the current user ID if authenticated
+    const userId = await getCurrentUserId();
     
-    // Temporarily bypass database operations
-    /*
-    // Save the trip data to the database
-    const tripData = {
-      ...validatedData,
-      itinerary,
-    };
-    
-    const savedTrip = await createTrip(tripData);
-    */
-    
-    // Calculate response time
-    const responseTime = Date.now() - startTime;
-    
-    // Track the itinerary generation asynchronously
-    AnalyticsService.trackItineraryGeneration({
+    // Create a response object with the generated itinerary
+    const responseData = {
       destination: validatedData.destination,
       duration: validatedData.duration,
       peopleCount: validatedData.peopleCount,
       budget: validatedData.budget,
-      currency: validatedData.currency || "INR",
-      successful: true,
-      responseTime,
-      request,
-    }).catch(error => {
-      console.error("Failed to track itinerary generation:", error);
-    });
+      currency: validatedData.currency,
+      itinerary,
+    };
     
-    return NextResponse.json({ 
-      success: true, 
-      trip: {
-        id: "temp-id-" + Date.now(),
+    // Track the itinerary generation via the API endpoint
+    const responseTime = Date.now() - startTime;
+    
+    // Extract IP and user agent
+    const ipAddress = request.headers.get('x-forwarded-for')?.split(',')[0].trim() || 
+                      request.headers.get('x-real-ip') || 
+                      'unknown';
+    const userAgent = request.headers.get('user-agent') || 'unknown';
+    
+    // Call the analytics API endpoint asynchronously
+    fetch(`${request.nextUrl.origin}/api/analytics/itinerary-generation`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
         destination: validatedData.destination,
         duration: validatedData.duration,
         peopleCount: validatedData.peopleCount,
         budget: validatedData.budget,
-        currency: validatedData.currency || "INR",
-        itinerary: itinerary,
-        createdAt: new Date().toISOString(),
-      }
-    }, { 
-      status: 201 
+        currency: validatedData.currency,
+        successful: true,
+        responseTime,
+        userId,
+        ipAddress,
+        userAgent,
+      }),
+    }).catch(error => {
+      console.error("Failed to track itinerary generation:", error);
     });
-  } catch (error: any) {
-    console.error("Travel plan generation error:", error);
     
-    // Set error details for analytics
+    // Return the generated itinerary
+    return NextResponse.json(responseData);
+  } catch (error: any) {
+    console.error("Error generating travel plan:", error);
     successful = false;
     errorMessage = error.message || "Unknown error";
     
-    // Handle invalid destination errors (user error - 400)
-    if (error instanceof InvalidDestinationError) {
-      // Get the original request data if available
-      let destination = "unknown";
-      let duration = 0;
-      let peopleCount = 0;
-      let budget = 0;
-      
-      try {
-        // Try to parse the original request to get the data
-        const originalData = request.clone().json().then(data => {
-          if (data && typeof data === 'object') {
-            destination = data.destination || "unknown";
-            duration = data.duration || 0;
-            peopleCount = data.peopleCount || 0;
-            budget = data.budget || 0;
-          }
-        }).catch(() => {
-          // Ignore parsing errors
-        });
-      } catch (parseError) {
-        console.error("Error parsing original request:", parseError);
-      }
-      
+    // Extract IP and user agent for error tracking
+    const ipAddress = request.headers.get('x-forwarded-for')?.split(',')[0].trim() || 
+                      request.headers.get('x-real-ip') || 
+                      'unknown';
+    const userAgent = request.headers.get('user-agent') || 'unknown';
+    
+    // Track the error via the API endpoint
+    const responseTime = Date.now() - startTime;
+    
+    // Handle specific error types
+    if (error.name === "InvalidDestinationError") {
       // Track the failed itinerary generation
-      AnalyticsService.trackItineraryGeneration({
-        destination,
-        duration,
-        peopleCount,
-        budget,
-        successful: false,
-        errorMessage: error.message,
-        responseTime: Date.now() - startTime,
-        request,
+      fetch(`${request.nextUrl.origin}/api/analytics/itinerary-generation`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          destination: "invalid-destination",
+          duration: 0,
+          peopleCount: 0,
+          budget: 0,
+          successful: false,
+          errorMessage: error.message,
+          responseTime,
+          userId: await getCurrentUserId(),
+          ipAddress,
+          userAgent,
+        }),
       }).catch(trackError => {
         console.error("Failed to track failed itinerary generation:", trackError);
       });
       
-      return NextResponse.json({ 
-        success: false, 
-        error: error.message,
-        errorType: "INVALID_DESTINATION"
-      }, { 
-        status: 400 
-      });
+      return NextResponse.json(
+        { error: error.message || "Invalid destination provided" },
+        { status: 400 }
+      );
     }
     
-    // Handle validation errors
     if (error.name === "ZodError") {
-      // Track validation error with available data
-      try {
-        const partialData = error.data || {};
-        
-        AnalyticsService.trackItineraryGeneration({
-          destination: partialData.destination || "validation-error",
-          duration: partialData.duration || 0,
-          peopleCount: partialData.peopleCount || 0,
-          budget: partialData.budget || 0,
+      // Track validation error
+      fetch(`${request.nextUrl.origin}/api/analytics/itinerary-generation`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          destination: "validation-error",
+          duration: 0,
+          peopleCount: 0,
+          budget: 0,
           successful: false,
           errorMessage: "Validation error: " + JSON.stringify(error.errors),
-          responseTime: Date.now() - startTime,
-          request,
-        }).catch(trackError => {
-          console.error("Failed to track validation error:", trackError);
-        });
-      } catch (trackError) {
-        console.error("Error tracking validation failure:", trackError);
-      }
-      
-      return NextResponse.json({ 
-        success: false, 
-        error: "Invalid request data", 
-        details: error.errors 
-      }, { 
-        status: 400 
+          responseTime,
+          userId: await getCurrentUserId(),
+          ipAddress,
+          userAgent,
+        }),
+      }).catch(trackError => {
+        console.error("Failed to track validation error:", trackError);
       });
+      
+      return NextResponse.json(
+        { error: "Invalid request data", details: error.errors },
+        { status: 400 }
+      );
     }
     
     // Track generic error
-    try {
-      AnalyticsService.trackItineraryGeneration({
+    fetch(`${request.nextUrl.origin}/api/analytics/itinerary-generation`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
         destination: "error",
         duration: 0,
         peopleCount: 0,
         budget: 0,
         successful: false,
         errorMessage: error.message || "Unknown server error",
-        responseTime: Date.now() - startTime,
-        request,
-      }).catch(trackError => {
-        console.error("Failed to track error:", trackError);
-      });
-    } catch (trackError) {
-      console.error("Error tracking failure:", trackError);
-    }
-    
-    // Handle other errors (server error - 500)
-    return NextResponse.json({ 
-      success: false, 
-      error: error.message || "Failed to generate travel plan" 
-    }, { 
-      status: 500 
+        responseTime,
+        userId: await getCurrentUserId(),
+        ipAddress,
+        userAgent,
+      }),
+    }).catch(trackError => {
+      console.error("Failed to track error:", trackError);
     });
+    
+    // Handle general errors
+    return NextResponse.json(
+      { error: "Failed to generate travel plan. Please try again later." },
+      { status: 500 }
+    );
   }
 } 

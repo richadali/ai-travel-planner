@@ -5,6 +5,7 @@ import Link from "next/link";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { cn } from "@/lib/utils";
 import { Plane } from "lucide-react";
+import { UserProfile } from "@/components/user-profile";
 
 interface HeaderProps {
   className?: string;
@@ -31,6 +32,7 @@ export function Header({ className }: HeaderProps) {
         </Link>
         <div className="flex items-center space-x-4">
           <ThemeToggle />
+          <UserProfile />
         </div>
       </div>
     </header>

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { TravelPlannerForm } from "@/components/travel-planner-form";
 import { ItineraryDisplay } from "@/components/itinerary-display";
 import { Header } from "@/components/header";
@@ -11,6 +11,7 @@ import { ItineraryType } from "@/types";
 import { MapPin, IndianRupee, Users, Clock, ArrowRight, Sparkles } from "lucide-react";
 import { motion } from "framer-motion";
 import { ErrorModal } from "@/components/ui/error-modal";
+import { useSession } from "next-auth/react";
 
 export default function Home() {
   const [isLoading, setIsLoading] = useState(false);
@@ -23,6 +24,39 @@ export default function Home() {
     budget: number;
     currency?: string;
   } | null>(null);
+  const { status } = useSession();
+
+  // Check for saved itinerary in localStorage when the component mounts
+  // or when the authentication status changes
+  useEffect(() => {
+    // Only try to restore if we're not already showing an itinerary
+    if (!itinerary) {
+      try {
+        const savedItinerary = localStorage.getItem('savedItinerary');
+        const savedTripMetadata = localStorage.getItem('savedTripMetadata');
+        
+        if (savedItinerary && savedTripMetadata) {
+          console.log('Found saved itinerary in localStorage');
+          setItinerary(JSON.parse(savedItinerary));
+          setTripMetadata(JSON.parse(savedTripMetadata));
+          
+          // Clear the saved data to prevent it from showing up on future visits
+          localStorage.removeItem('savedItinerary');
+          localStorage.removeItem('savedTripMetadata');
+          
+          // Scroll to the itinerary after a short delay
+          setTimeout(() => {
+            const itinerarySection = document.getElementById('itinerary-section');
+            if (itinerarySection) {
+              itinerarySection.scrollIntoView({ behavior: 'smooth' });
+            }
+          }, 500);
+        }
+      } catch (error) {
+        console.error('Error retrieving saved itinerary from localStorage:', error);
+      }
+    }
+  }, [status, itinerary]);
 
   const handleSubmit = async (data: TripFormValues) => {
     try {
@@ -61,7 +95,8 @@ export default function Home() {
         return;
       }
 
-      setItinerary(result.trip.itinerary);
+      // The API now directly returns the itinerary in the result object
+      setItinerary(result.itinerary);
       
       // Store trip metadata for PDF generation
       setTripMetadata({

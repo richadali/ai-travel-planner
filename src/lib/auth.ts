@@ -1,97 +1,167 @@
-import { cookies } from 'next/headers';
-import { prisma } from './prisma';
-import * as bcrypt from 'bcryptjs';
+import { PrismaAdapter } from "@auth/prisma-adapter";
+import { prisma } from "./prisma";
+import NextAuth from "next-auth";
+import Google from "next-auth/providers/google";
+import type { NextAuthConfig } from "next-auth";
+import { cookies } from "next/headers";
+import { JWT } from "next-auth/jwt";
 
-// Session token would be stored securely in a database in a real application
-const SESSION_COOKIE_NAME = 'admin_session';
-const SESSION_EXPIRY = 24 * 60 * 60 * 1000; // 24 hours
+// Extend the JWT type to include custom properties
+declare module "next-auth/jwt" {
+  interface JWT {
+    id?: string;
+    provider?: string;
+  }
+}
 
-export class AuthService {
-  /**
-   * Authenticate admin user
-   */
-  static async login(email: string, password: string): Promise<boolean> {
-    try {
-      // Find admin by email
-      const admin = await prisma.admin.findUnique({
-        where: { email },
-      });
-
-      // If admin not found, authentication fails
-      if (!admin) {
-        return false;
-      }
-
-      // Compare password with stored hash
-      const passwordMatch = await bcrypt.compare(password, admin.passwordHash);
-
-      if (passwordMatch) {
-        // Update last login time
-        await prisma.admin.update({
-          where: { id: admin.id },
-          data: { lastLoginAt: new Date() },
-        });
-        
-        return true;
-      }
-
-      return false;
-    } catch (error) {
-      console.error('Authentication error:', error);
-      return false;
+// Extend the Session User type to include id
+declare module "next-auth" {
+  interface Session {
+    user: {
+      id?: string;
+      name?: string | null;
+      email?: string | null;
+      image?: string | null;
     }
   }
-
-  /**
-   * Create a session for authenticated admin
-   */
-  static createSession(): string {
-    // In a real app, use a proper session management system
-    // This is a simplified version for demonstration
-    const sessionToken = `admin_${Date.now()}_${Math.random().toString(36).substring(2, 15)}`;
-    return sessionToken;
-  }
-
-  /**
-   * Verify if the session is valid
-   */
-  static async verifySession(sessionToken: string): Promise<boolean> {
-    // In a real app, validate against a database of sessions
-    // For this demo, we'll just check if it starts with 'admin_'
-    return Boolean(sessionToken && sessionToken.startsWith('admin_'));
-  }
-
-  /**
-   * Set session cookie
-   */
-  static setSessionCookie(sessionToken: string): void {
-    // This would be handled by a server action in a real application
-    document.cookie = `${SESSION_COOKIE_NAME}=${sessionToken}; path=/; max-age=${SESSION_EXPIRY / 1000}; SameSite=Strict`;
-  }
-
-  /**
-   * Clear session cookie for logout
-   */
-  static clearSessionCookie(): void {
-    document.cookie = `${SESSION_COOKIE_NAME}=; path=/; max-age=0; SameSite=Strict`;
-  }
 }
 
-// Server-side functions for Next.js API routes and middleware
+export const authConfig: NextAuthConfig = {
+  adapter: PrismaAdapter(prisma),
+  providers: [
+    Google({
+      clientId: process.env.GOOGLE_CLIENT_ID!,
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
+    }),
+  ],
+  callbacks: {
+    async redirect({ url, baseUrl }) {
+      // If the URL is already absolute, just return it
+      if (url.startsWith("http")) {
+        return url;
+      }
+      
+      // If it's a relative URL, append it to the base URL
+      if (url.startsWith("/")) {
+        return `${baseUrl}${url}`;
+      }
+      
+      // Default to the base URL
+      return baseUrl;
+    },
+    async session({ session, token, user }) {
+      // Add user ID to session
+      if (session.user) {
+        if (token?.sub) {
+          session.user.id = token.sub;
+        } else if (token?.id) {
+          session.user.id = token.id as string;
+        } else if (user?.id) {
+          session.user.id = user.id as string;
+        }
+      }
+      
+      return session;
+    },
+    async jwt({ token, user, account }) {
+      // Initial sign in
+      if (account && user) {
+        token.id = user.id;
+        token.provider = account.provider;
+      }
+      
+      return token;
+    }
+  },
+  pages: {
+    signIn: "/login",
+    error: "/login",
+  },
+  debug: false,
+  session: {
+    strategy: "jwt",
+    maxAge: 30 * 24 * 60 * 60, // 30 days
+  },
+  cookies: {
+    sessionToken: {
+      name: `next-auth.session-token`,
+      options: {
+        httpOnly: true,
+        sameSite: "lax",
+        path: "/",
+        secure: process.env.NODE_ENV === "production",
+      },
+    },
+  }
+};
+
+export const { handlers, auth, signIn, signOut } = NextAuth(authConfig);
+
+// Helper function to get the current session on the server
+export async function getServerSession() {
+  return await auth();
+}
+
+// Helper function to check if a user is authenticated on the server
+export async function isAuthenticated() {
+  const session = await getServerSession();
+  return !!session?.user;
+}
+
+// Helper function to get the current user ID on the server
+export async function getCurrentUserId() {
+  const session = await getServerSession();
+  return session?.user?.id;
+}
+
+// Client-side authentication helpers
+export const AuthService = {
+  // For admin authentication (keeping this for backward compatibility)
+  async login(email: string, password: string): Promise<boolean> {
+    try {
+      const response = await fetch("/api/admin/auth", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email, password }),
+      });
+
+      return response.ok;
+    } catch (error) {
+      console.error("Authentication error:", error);
+      return false;
+    }
+  },
+
+  // Set session cookie for admin (keeping this for backward compatibility)
+  setSessionCookie(sessionToken: string): void {
+    document.cookie = `admin_session=${sessionToken}; path=/; max-age=${24 * 60 * 60}; SameSite=Strict`;
+  },
+
+  // Clear session cookie for admin (keeping this for backward compatibility)
+  clearSessionCookie(): void {
+    document.cookie = `admin_session=; path=/; max-age=0; SameSite=Strict`;
+  },
+};
+
+// Server-side function for admin authentication (keeping this for backward compatibility)
 export async function getSessionToken(req: Request): Promise<string | null> {
-  const cookieHeader = req.headers.get('cookie');
+  const cookieHeader = req.headers.get("cookie");
   if (!cookieHeader) return null;
   
-  const cookies = cookieHeader.split(';').map(c => c.trim());
-  const sessionCookie = cookies.find(c => c.startsWith(`${SESSION_COOKIE_NAME}=`));
+  const cookies = cookieHeader.split(";").map(c => c.trim());
+  const sessionCookie = cookies.find(c => c.startsWith("admin_session="));
   
   if (!sessionCookie) return null;
-  return sessionCookie.split('=')[1];
+  return sessionCookie.split("=")[1];
 }
 
-export async function isAuthenticated(req: Request): Promise<boolean> {
+// Server-side function to check admin authentication (keeping this for backward compatibility)
+export async function isAdminAuthenticated(req: Request): Promise<boolean> {
   const sessionToken = await getSessionToken(req);
   if (!sessionToken) return false;
   
-  return AuthService.verifySession(sessionToken);
+  // In a real app, validate against a database of sessions
+  return sessionToken.startsWith("admin_");
 } 

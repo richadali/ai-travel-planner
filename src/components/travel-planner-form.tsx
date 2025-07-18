@@ -1,7 +1,7 @@
-import React from "react";
+import React, { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { TripRequestSchema, TripFormValues } from "@/lib/validations";
+import { z } from "zod";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
@@ -16,6 +16,19 @@ import {
 } from "@/components/ui/form";
 import { cn } from "@/lib/utils";
 import { Plane, Calendar, Users, IndianRupee, Sparkles } from "lucide-react";
+import { useSession } from "next-auth/react";
+
+// Define the schema here since we're no longer importing it
+const TripRequestSchema = z.object({
+  destination: z.string().min(1, "Destination is required"),
+  duration: z.number().min(1, "Duration must be at least 1 day").max(30, "Duration cannot exceed 30 days"),
+  peopleCount: z.number().min(1, "Number of people must be at least 1").max(20, "Number of people cannot exceed 20"),
+  budget: z.number().min(100, "Budget must be at least 100"),
+  currency: z.string().default("INR"),
+});
+
+// Define the form values type
+type TripFormValues = z.infer<typeof TripRequestSchema>;
 
 interface TravelPlannerFormProps {
   onSubmit: (data: TripFormValues) => void;
@@ -28,6 +41,8 @@ export function TravelPlannerForm({
   isLoading = false,
   className,
 }: TravelPlannerFormProps) {
+  const { data: session } = useSession();
+
   const form = useForm<TripFormValues>({
     resolver: zodResolver(TripRequestSchema) as any,
     defaultValues: {
@@ -77,7 +92,7 @@ export function TravelPlannerForm({
       <CardContent className="p-6">
         <Form {...form}>
           <form 
-            onSubmit={form.handleSubmit((data) => onSubmit(data as TripFormValues))} 
+            onSubmit={form.handleSubmit(onSubmit)} 
             className="space-y-6"
           >
             <FormField
@@ -203,6 +218,12 @@ export function TravelPlannerForm({
                 </span>
               )}
             </Button>
+
+            {!session && (
+              <p className="text-sm text-center text-muted-foreground">
+                <a href="/login" className="text-blue-600 dark:text-blue-400 hover:underline">Sign in</a> to save your travel plans and access them later.
+              </p>
+            )}
           </form>
         </Form>
       </CardContent>

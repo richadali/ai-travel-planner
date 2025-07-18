@@ -1,12 +1,17 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { ItineraryType } from "@/types";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import { generateTravelItineraryPDF } from "@/lib/pdf-generator";
 import { 
   MapPin, Clock, Coffee, Utensils, Bed, Bus, Plane, IndianRupee, 
-  LightbulbIcon, CloudRain, CalendarDays, ChefHat, Share2, Download, FileText 
+  LightbulbIcon, CloudRain, CalendarDays, ChefHat, Share2, Download, FileText, Save, Lock, Check, X
 } from "lucide-react";
+import { useSession } from "next-auth/react";
+import Link from "next/link";
+import { Tooltip } from "@/components/ui/tooltip";
+import { useRouter, usePathname } from "next/navigation";
+import { AuthModal } from "@/components/ui/auth-modal";
 
 interface ItineraryDisplayProps {
   itinerary: ItineraryType;
@@ -31,7 +36,34 @@ export const ItineraryDisplay: React.FC<ItineraryDisplayProps> = ({
 }) => {
   const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
   const [isSharing, setIsSharing] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [isSaved, setIsSaved] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+  const { data: session, status } = useSession();
+  const router = useRouter();
+  const pathname = usePathname();
+  
+  // Check if we're on a saved trip page
+  const isSavedTripPage = pathname?.includes('/trips/') && !pathname?.includes('/share/');
+  
+  // Set isSaved to true if tripId is provided (meaning it's already saved)
+  useEffect(() => {
+    if (tripId) {
+      setIsSaved(true);
+    }
+  }, [tripId]);
+
+  // Auto-hide success message after 5 seconds
+  useEffect(() => {
+    if (successMessage) {
+      const timer = setTimeout(() => {
+        setSuccessMessage(null);
+      }, 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [successMessage]);
 
   // Format currency
   const formatCurrency = (amount: number) => {
@@ -41,9 +73,72 @@ export const ItineraryDisplay: React.FC<ItineraryDisplayProps> = ({
     }).format(amount);
   };
 
+  const handleSave = async () => {
+    if (!tripMetadata) {
+      setErrorMessage('Trip information is not available for saving.');
+      return;
+    }
+
+    // Prevent duplicate saves
+    if (isSaved) {
+      setSuccessMessage('This trip has already been saved.');
+      return;
+    }
+
+    if (!session) {
+      // Show auth modal instead of redirecting
+      setIsAuthModalOpen(true);
+      // Save itinerary to localStorage for later retrieval
+      try {
+        localStorage.setItem('savedItinerary', JSON.stringify(itinerary));
+        localStorage.setItem('savedTripMetadata', JSON.stringify(tripMetadata));
+        console.log('Saved itinerary to localStorage before login prompt');
+      } catch (error) {
+        console.error('Error saving itinerary to localStorage:', error);
+      }
+      return;
+    }
+
+    try {
+      setIsSaving(true);
+      setErrorMessage(null);
+
+      const saveResponse = await fetch('/api/trips', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          destination: tripMetadata.destination,
+          duration: tripMetadata.duration,
+          peopleCount: tripMetadata.peopleCount,
+          budget: tripMetadata.budget,
+          currency: tripMetadata.currency || 'INR',
+          itinerary: itinerary,
+        }),
+      });
+
+      if (!saveResponse.ok) {
+        const errorData = await saveResponse.json();
+        throw new Error(errorData.error || 'Failed to save trip');
+      }
+
+      const saveData = await saveResponse.json();
+      
+      // Mark as saved to prevent duplicate saves
+      setIsSaved(true);
+      setSuccessMessage('Trip saved successfully! You can access it from your dashboard.');
+    } catch (error: any) {
+      console.error('Error saving trip:', error);
+      setErrorMessage(error.message);
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
   const handleShare = async () => {
     if (!tripMetadata) {
-      alert('Trip information is not available for sharing.');
+      setErrorMessage('Trip information is not available for sharing.');
       return;
     }
 
@@ -52,11 +147,10 @@ export const ItineraryDisplay: React.FC<ItineraryDisplayProps> = ({
       setErrorMessage(null);
 
       let currentTripId = tripId;
+      let shareUrl;
 
-      // If we don't have a tripId, we need to save the trip first
-      if (!currentTripId) {
-        console.log('Saving trip before sharing...');
-        
+      // If user is logged in and we don't have a tripId, save the trip first
+      if (session && !currentTripId) {
         try {
           const saveResponse = await fetch('/api/trips', {
             method: 'POST',
@@ -73,63 +167,60 @@ export const ItineraryDisplay: React.FC<ItineraryDisplayProps> = ({
             }),
           });
 
-          const responseText = await saveResponse.text();
-          console.log('Save trip response:', responseText);
-          
-          let saveData;
-          try {
-            saveData = JSON.parse(responseText);
-          } catch (parseError) {
-            console.error('Failed to parse save response:', parseError);
-            throw new Error(`Invalid response: ${responseText.substring(0, 100)}...`);
-          }
-          
           if (!saveResponse.ok) {
-            throw new Error(saveData.error || 'Failed to save trip');
+            const errorData = await saveResponse.json();
+            throw new Error(errorData.error || 'Failed to save trip');
           }
 
+          const saveData = await saveResponse.json();
           currentTripId = saveData.trip.id;
-          console.log('Trip saved with ID:', currentTripId);
-        } catch (saveError: any) {
-          console.error('Error saving trip:', saveError);
-          throw new Error(`Failed to save trip: ${saveError.message}`);
+          
+          // Mark as saved since we just saved it
+          setIsSaved(true);
+          
+          // Create share link for authenticated users
+          const shareResponse = await fetch('/api/trips/share', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              tripId: currentTripId,
+              ownerName: session.user.name || 'Travel Planner User',
+              expiryDays: 30,
+            }),
+          });
+
+          if (!shareResponse.ok) {
+            throw new Error('Failed to create share link');
+          }
+
+          const shareData = await shareResponse.json();
+          shareUrl = shareData.shareUrl;
+        } catch (error: any) {
+          console.error('Error saving trip for sharing:', error);
+          throw new Error(`Failed to prepare share link: ${error.message}`);
         }
+      } else if (!session) {
+        // For unauthenticated users, generate a temporary share link
+        // This is a simplified approach - in a real app, you might want to store this temporarily
+        const tempShareData = {
+          destination: tripMetadata.destination,
+          duration: tripMetadata.duration,
+          peopleCount: tripMetadata.peopleCount,
+          budget: tripMetadata.budget,
+          itinerary: itinerary
+        };
+        
+        // Convert to base64 for URL-safe sharing
+        const compressedData = btoa(JSON.stringify(tempShareData));
+        
+        // Create a shareable URL with the compressed data
+        // Note: This is just for demo purposes and has limitations on data size
+        shareUrl = `${window.location.origin}/trips/share/temp?data=${encodeURIComponent(compressedData)}`;
       }
 
-      // Create share link
-      console.log('Creating share link for trip ID:', currentTripId);
-      
-      try {
-        const shareResponse = await fetch('/api/trips/share', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            tripId: currentTripId,
-            ownerName: 'Travel Planner User',
-            expiryDays: 30,
-          }),
-        });
-
-        const responseText = await shareResponse.text();
-        console.log('Share response:', responseText);
-        
-        let shareData;
-        try {
-          shareData = JSON.parse(responseText);
-        } catch (parseError) {
-          console.error('Failed to parse share response:', parseError);
-          throw new Error(`Invalid response: ${responseText.substring(0, 100)}...`);
-        }
-        
-        if (!shareResponse.ok) {
-          throw new Error(shareData.error || 'Failed to create share link');
-        }
-
-        const shareUrl = shareData.shareUrl;
-        console.log('Share URL created:', shareUrl);
-
+      if (shareUrl) {
         // Use native share API if available, otherwise copy to clipboard
         if (navigator.share) {
           await navigator.share({
@@ -137,21 +228,18 @@ export const ItineraryDisplay: React.FC<ItineraryDisplayProps> = ({
             text: `Check out my ${tripMetadata.duration}-day travel plan for ${tripMetadata.destination}!`,
             url: shareUrl,
           });
-          console.log('Shared via Web Share API');
+          setSuccessMessage('Trip shared successfully!');
         } else {
           // Fallback for browsers that don't support the Web Share API
           await navigator.clipboard.writeText(shareUrl);
-          alert('Share link copied to clipboard!');
-          console.log('Share link copied to clipboard');
+          setSuccessMessage('Share link copied to clipboard!');
         }
-      } catch (shareError: any) {
-        console.error('Error creating share link:', shareError);
-        throw new Error(`Failed to create share link: ${shareError.message}`);
+      } else {
+        throw new Error('Could not generate share link');
       }
     } catch (error: any) {
       console.error('Error sharing:', error);
       setErrorMessage(error.message);
-      alert(`Failed to share: ${error.message}`);
     } finally {
       setIsSharing(false);
     }
@@ -159,7 +247,7 @@ export const ItineraryDisplay: React.FC<ItineraryDisplayProps> = ({
 
   const handleDownloadPDF = async () => {
     if (!tripMetadata) {
-      alert('Trip information is not available for PDF generation.');
+      setErrorMessage('Trip information is not available for PDF generation.');
       return;
     }
 
@@ -167,66 +255,55 @@ export const ItineraryDisplay: React.FC<ItineraryDisplayProps> = ({
       setIsGeneratingPDF(true);
       setErrorMessage(null);
 
-      let currentTripId = tripId;
+      // For authenticated users, track the download and save the trip
+      if (session) {
+        let currentTripId = tripId;
 
-      // If we don't have a tripId, we need to save the trip first
-      if (!currentTripId) {
-        console.log('Saving trip before downloading PDF...');
-        
-        try {
-          const saveResponse = await fetch('/api/trips', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-              destination: tripMetadata.destination,
-              duration: tripMetadata.duration,
-              peopleCount: tripMetadata.peopleCount,
-              budget: tripMetadata.budget,
-              currency: tripMetadata.currency || 'INR',
-              itinerary: itinerary,
-            }),
-          });
-
-          const responseText = await saveResponse.text();
-          console.log('Save trip response:', responseText);
-          
-          let saveData;
+        // If we don't have a tripId, save the trip first
+        if (!currentTripId && !isSaved) {
           try {
-            saveData = JSON.parse(responseText);
-          } catch (parseError) {
-            console.error('Failed to parse save response:', parseError);
-            throw new Error(`Invalid response: ${responseText.substring(0, 100)}...`);
-          }
-          
-          if (!saveResponse.ok) {
-            throw new Error(saveData.error || 'Failed to save trip');
-          }
+            const saveResponse = await fetch('/api/trips', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({
+                destination: tripMetadata.destination,
+                duration: tripMetadata.duration,
+                peopleCount: tripMetadata.peopleCount,
+                budget: tripMetadata.budget,
+                currency: tripMetadata.currency || 'INR',
+                itinerary: itinerary,
+              }),
+            });
 
-          currentTripId = saveData.trip.id;
-          console.log('Trip saved with ID:', currentTripId);
-        } catch (saveError: any) {
-          console.error('Error saving trip:', saveError);
-          throw new Error(`Failed to save trip: ${saveError.message}`);
+            if (saveResponse.ok) {
+              const saveData = await saveResponse.json();
+              currentTripId = saveData.trip.id;
+              
+              // Mark as saved since we just saved it
+              setIsSaved(true);
+              
+              // Track the download
+              fetch('/api/trips/download', {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                  tripId: currentTripId,
+                  downloadType: 'pdf',
+                }),
+              }).catch(error => {
+                console.error('Failed to track download:', error);
+              });
+            }
+          } catch (error) {
+            console.error('Error saving trip before download:', error);
+            // Continue with PDF generation even if saving fails
+          }
         }
       }
-
-      // Track the download
-      console.log('Tracking download for trip ID:', currentTripId);
-      
-      fetch('/api/trips/download', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          tripId: currentTripId,
-          downloadType: 'pdf',
-        }),
-      }).catch(error => {
-        console.error('Failed to track download:', error);
-      });
 
       // Prepare metadata for PDF generation
       const pdfMetadata = {
@@ -236,10 +313,8 @@ export const ItineraryDisplay: React.FC<ItineraryDisplayProps> = ({
         budget: tripMetadata.budget,
         currency: tripMetadata.currency || 'INR',
         generatedAt: new Date(),
-        ownerName: 'Travel Planner User'
+        ownerName: session?.user?.name || 'Travel Planner User'
       };
-
-      console.log('Generating PDF...');
       
       // Generate and download the PDF
       await generateTravelItineraryPDF(
@@ -247,12 +322,11 @@ export const ItineraryDisplay: React.FC<ItineraryDisplayProps> = ({
         pdfMetadata,
         `${tripMetadata.destination.replace(/\s+/g, '_')}_Travel_Itinerary.pdf`
       );
-
-      console.log('PDF generated successfully');
+      
+      setSuccessMessage('PDF downloaded successfully!');
     } catch (error: any) {
       console.error('Error generating PDF:', error);
       setErrorMessage(error.message);
-      alert('Failed to generate PDF. Please try again.');
     } finally {
       setIsGeneratingPDF(false);
     }
@@ -271,13 +345,84 @@ export const ItineraryDisplay: React.FC<ItineraryDisplayProps> = ({
           }
         </p>
         
+        {/* Success Message */}
+        {successMessage && (
+          <div className="mt-4 p-3 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg text-green-800 dark:text-green-200 text-sm flex items-center justify-between">
+            <div className="flex items-center">
+              <Check className="h-4 w-4 mr-2 flex-shrink-0" />
+              <span>{successMessage}</span>
+            </div>
+            <button 
+              onClick={() => setSuccessMessage(null)}
+              className="text-green-600 dark:text-green-400 hover:text-green-800 dark:hover:text-green-200"
+              aria-label="Dismiss"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          </div>
+        )}
+        
+        {/* Error Message */}
         {errorMessage && (
-          <div className="mt-4 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg text-red-800 dark:text-red-200 text-sm">
-            Error: {errorMessage}
+          <div className="mt-4 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg text-red-800 dark:text-red-200 text-sm flex items-center justify-between">
+            <div className="flex items-center">
+              <X className="h-4 w-4 mr-2 flex-shrink-0" />
+              <span>{errorMessage}</span>
+            </div>
+            <button 
+              onClick={() => setErrorMessage(null)}
+              className="text-red-600 dark:text-red-400 hover:text-red-800 dark:hover:text-red-200"
+              aria-label="Dismiss"
+            >
+              <X className="h-4 w-4" />
+            </button>
           </div>
         )}
         
         <div className="flex justify-center gap-3 mt-6 no-print">
+          {/* Only show save button if not on a saved trip page and not in shared view */}
+          {!isSharedView && !isSavedTripPage && (
+            status === "authenticated" ? (
+              <button 
+                onClick={handleSave}
+                disabled={isSaving || isSaved}
+                className={cn(
+                  "px-4 py-2 rounded-lg font-medium transition-colors flex items-center",
+                  isSaved 
+                    ? "bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300 cursor-default" 
+                    : "bg-green-100 hover:bg-green-200 dark:bg-green-900/30 dark:hover:bg-green-800/50 text-green-800 dark:text-green-300 disabled:opacity-50 disabled:cursor-not-allowed"
+                )}
+              >
+                {isSaving ? (
+                  <>
+                    <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-current" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    Saving...
+                  </>
+                ) : isSaved ? (
+                  <>
+                    <Check className="mr-2 h-4 w-4" /> Trip Saved
+                  </>
+                ) : (
+                  <>
+                    <Save className="mr-2 h-4 w-4" /> Save Trip
+                  </>
+                )}
+              </button>
+            ) : (
+              <Tooltip content="Sign in to save your trip and access it later">
+                <button 
+                  onClick={handleSave}
+                  className="bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 px-4 py-2 rounded-lg font-medium flex items-center relative group hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+                >
+                  <Lock className="mr-2 h-4 w-4" /> Save Trip
+                </button>
+              </Tooltip>
+            )
+          )}
+          
           <button 
             onClick={handleShare}
             disabled={isSharing}
@@ -318,6 +463,14 @@ export const ItineraryDisplay: React.FC<ItineraryDisplayProps> = ({
           </button>
         </div>
       </div>
+
+      {/* Authentication Modal */}
+      <AuthModal 
+        isOpen={isAuthModalOpen}
+        onClose={() => setIsAuthModalOpen(false)}
+        title="Sign In Required"
+        message="Please sign in to save your travel itinerary and access it later from any device."
+      />
 
       {/* Trip Overview */}
       {itinerary.bestTimeToVisit && (
@@ -628,6 +781,51 @@ export const ItineraryDisplay: React.FC<ItineraryDisplayProps> = ({
       </div>
       
       <div className="flex justify-center gap-4 pt-8 border-t border-slate-200 dark:border-slate-800 no-print">
+        {/* Only show save button if not on a saved trip page and not in shared view */}
+        {!isSharedView && !isSavedTripPage && (
+          status === "authenticated" ? (
+            <button 
+              onClick={handleSave}
+              disabled={isSaving || isSaved}
+              className={cn(
+                "px-4 py-2 rounded-lg font-medium transition-colors flex items-center",
+                isSaved 
+                  ? "bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300 cursor-default" 
+                  : "bg-green-100 hover:bg-green-200 dark:bg-green-900/30 dark:hover:bg-green-800/50 text-green-800 dark:text-green-300 disabled:opacity-50 disabled:cursor-not-allowed"
+              )}
+            >
+              {isSaving ? (
+                <>
+                  <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-current" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  Saving...
+                </>
+              ) : isSaved ? (
+                <>
+                  <Check className="mr-2 h-4 w-4" /> Trip Saved
+                </>
+              ) : (
+                <>
+                  <Save className="mr-2 h-4 w-4" /> Save Trip
+                </>
+              )}
+            </button>
+          ) : (
+            <Tooltip content="Sign in to save your trip and access it later">
+              <button 
+                onClick={handleSave}
+                className="bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 px-4 py-2 rounded-lg font-medium flex items-center relative group hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+              >
+                <Lock className="mr-2 h-4 w-4" /> Save Trip
+                <span className="absolute -top-10 left-1/2 transform -translate-x-1/2 bg-black text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
+                  Sign in to save
+                </span>
+              </button>
+            </Tooltip>
+          )
+        )}
         <button 
           onClick={handleShare}
           disabled={isSharing}
