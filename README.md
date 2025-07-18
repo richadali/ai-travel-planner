@@ -2,7 +2,7 @@
 
 An AI-powered travel planning application that generates personalized travel itineraries based on user preferences. Built with Next.js, TypeScript, Tailwind CSS, and Google Gemini AI.
 
-![AI Travel Planner](https://github.com/yourusername/ai-travel-planner/raw/main/public/travel-planner-preview.png)
+![AI Travel Planner](https://github.com/richadali/ai-travel-planner/raw/main/public/travel-planner-preview.png)
 
 ## Project Overview
 
