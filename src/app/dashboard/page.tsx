@@ -8,13 +8,13 @@ import { Button } from "@/components/ui/button";
 import { Calendar, MapPin, Users, Wallet, Trash2, AlertTriangle } from "lucide-react";
 import { useSession, signIn } from "next-auth/react";
 import { useEffect, useState } from "react";
-import { TripType } from "@/types";
+import { ShareableTrip } from "@/types";
 import { LoadingSpinner } from "@/components/loading-spinner";
 import { useRouter, useSearchParams } from "next/navigation";
 
 export default function DashboardPage() {
   const { data: session, status } = useSession();
-  const [trips, setTrips] = useState<TripType[]>([]);
+  const [trips, setTrips] = useState<ShareableTrip[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [deletingTripId, setDeletingTripId] = useState<string | null>(null);
