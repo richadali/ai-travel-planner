@@ -48,13 +48,11 @@ export default function manifest(): MetadataRoute.Manifest {
         src: '/screenshots/desktop.jpg',
         sizes: '1280x720',
         type: 'image/jpeg',
-        platform: 'windows',
       },
       {
         src: '/screenshots/mobile.jpg',
         sizes: '750x1334',
         type: 'image/jpeg',
-        platform: 'ios',
       },
     ],
   };

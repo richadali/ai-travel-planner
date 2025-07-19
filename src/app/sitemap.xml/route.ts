@@ -8,7 +8,9 @@ export async function GET(): Promise<Response> {
     // Get all public trips that are shared
     const sharedTrips = await prisma.trip.findMany({
       where: {
-        isShared: true,
+        shareId: {
+          not: null
+        },
       },
       select: {
         id: true,
