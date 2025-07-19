@@ -15,9 +15,7 @@ export async function POST(request: NextRequest) {
       successful = true,
       errorMessage = null,
       responseTime = null,
-      userId = null,
-      ipAddress = null,
-      userAgent = null
+      userId = null
     } = body;
     
     // Validate required fields
@@ -36,8 +34,7 @@ export async function POST(request: NextRequest) {
       errorMessage,
       responseTime,
       userId,
-      ipAddress,
-      userAgent
+      request
     });
     
     return NextResponse.json({ success: true });

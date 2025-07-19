@@ -9,9 +9,8 @@ export async function POST(request: NextRequest) {
     await AnalyticsService.trackPageView({
       path: body.path,
       referrer: body.referrer,
-      ipAddress: body.ipAddress,
-      userAgent: body.userAgent,
       duration: body.duration,
+      request,
     });
     
     return NextResponse.json({ success: true });

@@ -9,9 +9,7 @@ export async function POST(request: NextRequest) {
     const { 
       path, 
       referrer = null, 
-      userId = null,
-      ipAddress = null,
-      userAgent = null
+      userId = null
     } = body;
     
     // Validate required fields
@@ -24,8 +22,7 @@ export async function POST(request: NextRequest) {
       path,
       referrer,
       userId,
-      ipAddress,
-      userAgent
+      request
     });
     
     return NextResponse.json({ success: true });
