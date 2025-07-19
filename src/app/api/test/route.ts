@@ -2,6 +2,16 @@ import { NextRequest, NextResponse } from "next/server";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { config } from "@/lib/config";
 
+interface ModelResult {
+  status: "success" | "error";
+  response?: string;
+  error?: string;
+}
+
+interface ModelResults {
+  [modelName: string]: ModelResult;
+}
+
 export async function GET(request: NextRequest) {
   try {
     console.log("Testing Gemini API connection");
@@ -19,7 +29,7 @@ export async function GET(request: NextRequest) {
       "gemini-ultra",
     ];
     
-    const results = {};
+    const results: ModelResults = {};
     
     // Try each model with a simple prompt
     for (const modelName of modelNames) {
