@@ -76,3 +76,4 @@ function writeSitemaps() {
 
 // Run the script
 writeSitemaps();
+ 

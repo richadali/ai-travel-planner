@@ -61,13 +61,13 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     return {
       title: "Travel Itinerary | AI Travel Planner",
       description: "View your AI-generated travel itinerary.",
-      openGraph: {
+  openGraph: {
         images: [{ url: "https://aitravelplanner.richadali.dev/og.png" }],
       },
       twitter: {
         images: ["https://aitravelplanner.richadali.dev/og.png"],
-      },
-    };
+  },
+};
   }
 }
 

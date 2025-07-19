@@ -40,9 +40,9 @@ export function Header({ className }: HeaderProps) {
                 />
               </div>
             ) : (
-              <div className="bg-gradient-to-r from-blue-600 to-indigo-600 p-1.5 rounded-md">
-                <Plane className="h-7 w-7 text-white" />
-              </div>
+            <div className="bg-gradient-to-r from-blue-600 to-indigo-600 p-1.5 rounded-md">
+              <Plane className="h-7 w-7 text-white" />
+            </div>
             )}
             <div className="flex flex-col">
               <span className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-indigo-600">
