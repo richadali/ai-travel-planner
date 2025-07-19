@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
 import { Plane, MapPin, Sparkles, Globe, IndianRupee, Bed, Clock, LightbulbIcon } from "lucide-react";
-import { motion } from "framer-motion";
+import { motion, Variants } from "framer-motion";
 
 interface LoadingSpinnerProps {
   className?: string;
@@ -47,7 +47,7 @@ export function LoadingSpinner({ className, size = "md" }: LoadingSpinnerProps) 
     lg: "h-12 w-12",
   };
 
-  const iconVariants = {
+  const iconVariants: Variants = {
     initial: { scale: 0.8, opacity: 0 },
     animate: { 
       scale: 1, 
@@ -61,7 +61,7 @@ export function LoadingSpinner({ className, size = "md" }: LoadingSpinnerProps) 
     exit: { scale: 1.2, opacity: 0 }
   };
 
-  const containerVariants = {
+  const containerVariants: Variants = {
     animate: {
       transition: {
         staggerChildren: 0.2
