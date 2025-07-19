@@ -7,10 +7,10 @@ export const revalidate = 60; // Revalidate every 60 seconds
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: { id: string } }
 ) {
   try {
-    const tripId = params.id;
+    const tripId = context.params.id;
     
     if (!tripId) {
       return NextResponse.json({ 
@@ -56,7 +56,7 @@ export async function GET(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: { id: string } }
 ) {
   try {
     // Check authentication
@@ -71,7 +71,7 @@ export async function DELETE(
       });
     }
     
-    const tripId = params.id;
+    const tripId = context.params.id;
     
     if (!tripId) {
       return NextResponse.json({ 
