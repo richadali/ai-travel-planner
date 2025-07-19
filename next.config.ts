@@ -17,6 +17,9 @@ const nextConfig: NextConfig = {
     // Don't fail the build if there are ESLint errors
     ignoreDuringBuilds: true,
   },
+  // Disable static generation for all pages
+  output: 'standalone',
+  staticPageGenerationTimeout: 1000,
 };
 
 export default nextConfig;
