@@ -105,7 +105,7 @@ export function TravelPlannerForm({
                   </FormLabel>
                   <FormControl>
                     <Input 
-                      placeholder="e.g. Guwahati, Mumbai, Paris" 
+                      placeholder="e.g. Jorhat, Mumbai, Paris" 
                       {...field} 
                       className="focus-visible:ring-slate-400 dark:focus-visible:ring-slate-600"
                     />

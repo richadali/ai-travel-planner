@@ -2,33 +2,45 @@ import { Metadata } from "next";
 import { prisma } from "@/lib/prisma";
 
 interface Props {
-  params: { id: string };
+  params: { shareId: string };
   children: React.ReactNode;
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   try {
-    // Fetch trip data from database
+    // Fetch shared trip data from database
     const trip = await prisma.trip.findUnique({
-      where: { id: params.id },
+      where: { shareId: params.shareId },
       select: {
         destination: true,
         duration: true,
         peopleCount: true,
         budget: true,
         currency: true,
+        user: {
+          select: {
+            name: true,
+          },
+        },
       },
     });
 
     if (!trip) {
       return {
-        title: "Trip Not Found | AI Travel Planner",
-        description: "The requested travel itinerary could not be found.",
+        title: "Shared Trip Not Found | AI Travel Planner",
+        description: "The requested shared travel itinerary could not be found.",
+        openGraph: {
+          images: [{ url: "https://aitravelplanner.richadali.dev/og.png" }],
+        },
+        twitter: {
+          images: ["https://aitravelplanner.richadali.dev/og.png"],
+        },
       };
     }
 
-    const title = `${trip.destination} Travel Itinerary | AI Travel Planner`;
-    const description = `${trip.duration}-day travel plan for ${trip.destination} with a budget of ${trip.currency}${trip.budget} for ${trip.peopleCount} people. Created with AI Travel Planner.`;
+    const ownerName = trip.user?.name || "a traveler";
+    const title = `${trip.destination} Travel Itinerary | Shared by ${ownerName} | AI Travel Planner`;
+    const description = `${trip.duration}-day travel plan for ${trip.destination} with a budget of ${trip.currency}${trip.budget} for ${trip.peopleCount} people. Created with AI Travel Planner and shared by ${ownerName}.`;
 
     return {
       title,
@@ -37,7 +49,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
         title,
         description,
         type: "article",
-        url: `https://aitravelplanner.richadali.dev/trips/${params.id}`,
+        url: `https://aitravelplanner.richadali.dev/trips/share/${params.shareId}`,
         images: [
           {
             url: `https://aitravelplanner.richadali.dev/api/og?title=${encodeURIComponent(trip.destination)}&destination=${encodeURIComponent(`${trip.duration}-day Itinerary`)}`,
@@ -57,8 +69,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   } catch (error) {
     console.error("Error generating metadata:", error);
     return {
-      title: "Travel Itinerary | AI Travel Planner",
-      description: "View your AI-generated travel itinerary.",
+      title: "Shared Travel Itinerary | AI Travel Planner",
+      description: "View a shared AI-generated travel itinerary.",
       openGraph: {
         images: [{ url: "https://aitravelplanner.richadali.dev/og.png" }],
       },
@@ -69,6 +81,6 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   }
 }
 
-export default function TripLayout({ children }: { children: React.ReactNode }) {
+export default function SharedTripLayout({ children }: { children: React.ReactNode }) {
   return <>{children}</>;
 } 

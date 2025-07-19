@@ -5,8 +5,17 @@ export default function robots(): MetadataRoute.Robots {
     rules: {
       userAgent: '*',
       allow: '/',
-      disallow: ['/api/*', '/dashboard'],
+      disallow: [
+        '/api/*', 
+        '/dashboard', 
+        '/admin/*', 
+        '/login', 
+        '/auth-test',
+        '/test-session',
+        '/bypass-dashboard',
+        '/direct-dashboard',
+      ],
     },
-    sitemap: 'https://yourdomain.com/sitemap.xml',
+    sitemap: 'https://aitravelplanner.richadali.dev/sitemap.xml',
   };
 } 

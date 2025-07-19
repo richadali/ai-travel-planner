@@ -401,4 +401,49 @@ export class AnalyticsService {
       throw new Error('Failed to retrieve analytics data');
     }
   }
+
+  /**
+   * Track a Google Analytics event from the client side
+   * This function is meant to be used in client components
+   */
+  static trackGoogleAnalyticsEvent(
+    eventName: string,
+    eventParams?: Record<string, any>
+  ) {
+    // Check if window and gtag are available (client-side only)
+    if (typeof window !== 'undefined' && 'gtag' in window) {
+      try {
+        // Cast window.gtag to any to avoid TypeScript errors
+        const gtag = (window as any).gtag;
+        
+        // Send the event to Google Analytics
+        gtag('event', eventName, eventParams);
+        return true;
+      } catch (error) {
+        console.error('Failed to track Google Analytics event:', error);
+        return false;
+      }
+    }
+    return false;
+  }
+
+  /**
+   * Track a page view with Google Analytics
+   * This should be called on route changes
+   */
+  static trackGoogleAnalyticsPageView(url: string) {
+    if (typeof window !== 'undefined' && 'gtag' in window) {
+      try {
+        const gtag = (window as any).gtag;
+        gtag('config', 'G-H1NFKBMBC0', {
+          page_path: url,
+        });
+        return true;
+      } catch (error) {
+        console.error('Failed to track Google Analytics page view:', error);
+        return false;
+      }
+    }
+    return false;
+  }
 } 

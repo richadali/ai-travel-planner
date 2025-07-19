@@ -35,11 +35,11 @@ export default function DashboardPage() {
   useEffect(() => {
     const fetchTrips = async () => {
       if (status === "authenticated" && session?.user) {
-        try {
+      try {
           setLoading(true);
           const response = await fetch("/api/trips");
-          
-          if (!response.ok) {
+
+        if (!response.ok) {
             if (response.status === 401) {
               return;
             }
@@ -52,14 +52,14 @@ export default function DashboardPage() {
         } catch (error) {
           console.error("Error fetching trips:", error);
           setError("Failed to load your trips. Please try again later.");
-        } finally {
+      } finally {
           setLoading(false);
         }
       }
     };
 
     if (status === "authenticated") {
-      fetchTrips();
+    fetchTrips();
     }
   }, [status, session]);
 
@@ -125,10 +125,10 @@ export default function DashboardPage() {
       <main className="flex-grow container mx-auto px-4 py-8 max-w-7xl">
         <div className="mb-8">
           <h1 className="text-3xl font-bold mb-2">Your Travel Dashboard</h1>
-          <p className="text-muted-foreground">
+              <p className="text-muted-foreground">
             View and manage your saved travel itineraries
-          </p>
-        </div>
+              </p>
+            </div>
 
         {error && (
           <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4 mb-6 text-red-800 dark:text-red-300">
@@ -176,8 +176,8 @@ export default function DashboardPage() {
                             <Wallet className="h-4 w-4 mr-2" />
                             <span>{trip.currency} {trip.budget.toLocaleString()}</span>
                           </div>
-                        </div>
-                        
+          </div>
+
                         <div className="text-xs text-muted-foreground">
                           Created on {new Date(trip.createdAt).toLocaleDateString()}
                         </div>
@@ -194,8 +194,8 @@ export default function DashboardPage() {
                 </div>
               ))}
             </div>
-          </div>
-        )}
+            </div>
+          )}
 
         {/* Delete Confirmation Modal */}
         {showDeleteConfirm && (
@@ -238,7 +238,7 @@ export default function DashboardPage() {
               </div>
             </div>
           </div>
-        )}
+          )}
       </main>
       <Footer />
     </div>

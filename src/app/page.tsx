@@ -12,6 +12,7 @@ import { MapPin, IndianRupee, Users, Clock, ArrowRight, Sparkles } from "lucide-
 import { motion } from "framer-motion";
 import { ErrorModal } from "@/components/ui/error-modal";
 import { useSession } from "next-auth/react";
+import { JsonLd } from "@/components/json-ld";
 
 export default function Home() {
   const [isLoading, setIsLoading] = useState(false);
@@ -23,7 +24,7 @@ export default function Home() {
     peopleCount: number;
     budget: number;
     currency?: string;
-  } | null>(null);
+  } | undefined>(undefined);
   const { status } = useSession();
 
   // Check for saved itinerary in localStorage when the component mounts
@@ -143,8 +144,36 @@ export default function Home() {
     }
   };
 
+  // Structured data for SEO
+  const structuredData = {
+    "@context": "https://schema.org",
+    "@type": "WebApplication",
+    "name": "AI Travel Planner",
+    "url": "https://aitravelplanner.richadali.dev",
+    "description": "Plan your perfect trip with AI assistance. Get personalized travel itineraries based on your destination, budget, and preferences.",
+    "applicationCategory": "TravelApplication",
+    "operatingSystem": "Any",
+    "offers": {
+      "@type": "Offer",
+      "price": "0",
+      "priceCurrency": "USD"
+    },
+    "featureList": [
+      "AI-generated travel itineraries",
+      "Personalized recommendations",
+      "Budget planning",
+      "Activity suggestions",
+      "Accommodation recommendations"
+    ],
+    "screenshot": "https://aitravelplanner.richadali.dev/screenshots/desktop.jpg",
+    "softwareVersion": "1.0"
+  };
+
   return (
     <div className="flex min-h-screen flex-col">
+      {/* Add structured data for SEO */}
+      <JsonLd data={structuredData} />
+      
       <Header />
       <main className="flex-1">
         <section className="py-16 md:py-24 bg-gradient-to-b from-slate-900 to-slate-800 text-white overflow-hidden">

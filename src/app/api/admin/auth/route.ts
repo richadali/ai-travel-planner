@@ -1,50 +1,38 @@
 import { NextRequest, NextResponse } from "next/server";
-import { AuthService } from "@/lib/auth";
-import { z } from "zod";
+import { getServerSession, isAdmin } from "@/lib/auth";
 
-const LoginSchema = z.object({
-  email: z.string().email("Invalid email address"),
-  password: z.string().min(6, "Password must be at least 6 characters"),
-});
-
-export async function POST(request: NextRequest) {
+export async function GET(request: NextRequest) {
   try {
-    // Parse and validate request body
-    const body = await request.json();
-    const result = LoginSchema.safeParse(body);
+    const session = await getServerSession();
     
-    if (!result.success) {
+    if (!session?.user) {
       return NextResponse.json({ 
         success: false, 
-        error: "Invalid credentials",
-        details: result.error.format()
-      }, { status: 400 });
-    }
-    
-    const { email, password } = result.data;
-    
-    // Authenticate user
-    const isAuthenticated = await AuthService.login(email, password);
-    
-    if (!isAuthenticated) {
-      return NextResponse.json({ 
-        success: false, 
-        error: "Invalid email or password" 
+        error: "Not authenticated" 
       }, { status: 401 });
     }
     
-    // Create session token
-    const sessionToken = AuthService.createSession();
+    // Check if user is admin
+    const adminStatus = await isAdmin();
     
-    // Return success with session token
-    // In a real app, you would set an HTTP-only cookie here
+    if (!adminStatus) {
+      return NextResponse.json({ 
+        success: false, 
+        error: "Not authorized" 
+      }, { status: 403 });
+    }
+    
     return NextResponse.json({ 
       success: true,
-      sessionToken
+      user: {
+        name: session.user.name,
+        email: session.user.email,
+        image: session.user.image,
+      }
     });
     
   } catch (error: any) {
-    console.error("Authentication error:", error);
+    console.error("Admin authentication error:", error);
     
     return NextResponse.json({ 
       success: false, 

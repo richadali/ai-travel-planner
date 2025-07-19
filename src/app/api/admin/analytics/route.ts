@@ -27,7 +27,8 @@ export async function GET(request: NextRequest) {
       totalDownloads,
       averageResponseTime,
       topDestinations,
-      dailyData
+      dailyData,
+      registeredUsers
     ] = await Promise.all([
       // Total visits
       prisma.pageView.count({
@@ -141,7 +142,10 @@ export async function GET(request: NextRequest) {
       }),
       
       // Daily data for charts
-      getDailyData(startDate, endDate)
+      getDailyData(startDate, endDate),
+      
+      // Registered users
+      prisma.user.count()
     ]);
 
     return NextResponse.json({
@@ -158,6 +162,7 @@ export async function GET(request: NextRequest) {
         count: d._count,
       })),
       dailyData,
+      registeredUsers
     });
   } catch (error) {
     console.error('Analytics API error:', error);

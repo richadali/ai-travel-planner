@@ -1,0 +1,14 @@
+# AI Travel Planner robots.txt
+User-agent: *
+Allow: /
+Disallow: /api/
+Disallow: /dashboard
+Disallow: /admin/
+Disallow: /login
+Disallow: /auth-test
+Disallow: /test-session
+Disallow: /bypass-dashboard
+Disallow: /direct-dashboard
+
+# Sitemap
+Sitemap: https://aitravelplanner.richadali.dev/sitemap-index.xml 

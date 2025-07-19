@@ -4,6 +4,8 @@ import "./globals.css";
 import { cn } from "@/lib/utils";
 import { ThemeProvider } from "@/components/theme-provider";
 import { AuthProvider } from "@/components/auth-provider";
+import Script from "next/script";
+import { AnalyticsTracker } from "@/components/analytics-tracker";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -16,10 +18,42 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "AI Travel Planner",
-  description: "Plan your perfect trip with AI assistance",
+  title: "AI Travel Planner | Personalized Trip Itineraries",
+  description: "Plan your perfect trip with AI assistance. Get personalized travel itineraries based on your destination, budget, and preferences.",
+  metadataBase: new URL("https://aitravelplanner.richadali.dev"),
+  openGraph: {
+    type: "website",
+    locale: "en_US",
+    url: "https://aitravelplanner.richadali.dev",
+    title: "AI Travel Planner | Personalized Trip Itineraries",
+    description: "Plan your perfect trip with AI assistance. Get personalized travel itineraries based on your destination, budget, and preferences.",
+    siteName: "AI Travel Planner",
+    images: [
+      {
+        url: "https://aitravelplanner.richadali.dev/og.png",
+        width: 1200,
+        height: 630,
+        alt: "AI Travel Planner",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "AI Travel Planner | Personalized Trip Itineraries",
+    description: "Plan your perfect trip with AI assistance. Get personalized travel itineraries based on your destination, budget, and preferences.",
+    images: ["https://aitravelplanner.richadali.dev/og.png"],
+  },
   icons: {
-    icon: "/favicon.ico",
+    icon: [
+      { url: "/favicon.ico", sizes: "any" },
+      { url: "/favicon-16x16.png", sizes: "16x16", type: "image/png" },
+      { url: "/favicon-32x32.png", sizes: "32x32", type: "image/png" },
+    ],
+    apple: "/apple-touch-icon.png",
+    shortcut: "/favicon.ico",
+  },
+  alternates: {
+    canonical: "https://aitravelplanner.richadali.dev",
   },
 };
 
@@ -30,6 +64,21 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
+      <head>
+        {/* Google Analytics */}
+        <Script
+          src="https://www.googletagmanager.com/gtag/js?id=G-H1NFKBMBC0"
+          strategy="afterInteractive"
+        />
+        <Script id="google-analytics" strategy="afterInteractive">
+          {`
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', 'G-H1NFKBMBC0');
+          `}
+        </Script>
+      </head>
       <body
         className={cn(
           "min-h-screen bg-background font-sans antialiased",
@@ -38,14 +87,16 @@ export default function RootLayout({
         )}
       >
         <AuthProvider>
-          <ThemeProvider
-            attribute="class"
-            defaultTheme="system"
-            enableSystem
-            disableTransitionOnChange
-          >
-            {children}
-          </ThemeProvider>
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="system"
+          enableSystem
+          disableTransitionOnChange
+      >
+        {/* Analytics Tracker */}
+        <AnalyticsTracker />
+        {children}
+        </ThemeProvider>
         </AuthProvider>
       </body>
     </html>

@@ -27,6 +27,7 @@ interface AnalyticsData {
     shares: number;
     downloads: number;
   }[];
+  registeredUsers?: number; // Added for registered users
 }
 
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8', '#82ca9d', '#ffc658', '#8dd1e1', '#a4de6c', '#d0ed57'];
@@ -155,21 +156,22 @@ export default function AnalyticsDashboard() {
       <Header />
       <main className="flex-1 container mx-auto py-8 px-4 md:px-6 max-w-7xl">
         <div className="flex flex-col space-y-8">
-          <div className="flex justify-between items-center">
-            <div>
-              <h1 className="text-3xl font-bold mb-2">Analytics Dashboard</h1>
-              <p className="text-muted-foreground">
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+            <div className="bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text">
+              <h1 className="text-4xl font-bold mb-1 text-slate-900 dark:text-white">Analytics Dashboard</h1>
+              <p className="text-slate-500 dark:text-slate-400">
                 Track site visits and itinerary generations
               </p>
             </div>
-            <div className="flex space-x-2">
+            {/* <div className="flex space-x-3">
               <Button 
                 variant="outline" 
                 size="sm" 
                 onClick={fetchAnalytics}
                 disabled={loading}
+                className="bg-white dark:bg-slate-900 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors shadow-sm px-4 h-9"
               >
-                <RefreshCwIcon className="h-4 w-4 mr-1" />
+                <RefreshCwIcon className="h-4 w-4 mr-2 text-blue-600 dark:text-blue-400" />
                 Refresh
               </Button>
               {process.env.NODE_ENV === 'development' && (
@@ -178,27 +180,33 @@ export default function AnalyticsDashboard() {
                   size="sm" 
                   onClick={handleResetAnalytics}
                   disabled={isResetting}
+                  className="hover:bg-red-700 transition-colors shadow-sm px-4 h-9"
                 >
-                  <RotateCcw className="h-4 w-4 mr-1" />
+                  <RotateCcw className="h-4 w-4 mr-2" />
                   Reset Analytics
                 </Button>
               )}
-            </div>
+            </div> */}
           </div>
 
-          <div className="flex justify-between items-center">
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
             <div>
               {resetSuccess && (
-                <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-2 text-sm text-green-800 dark:text-green-200">
+                <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-2 text-sm text-green-800 dark:text-green-200 shadow-sm animate-pulse">
                   {resetSuccess}
                 </div>
               )}
             </div>
-            <Tabs defaultValue="30d" value={dateRange} onValueChange={(v) => setDateRange(v as any)}>
-              <TabsList>
-                <TabsTrigger value="7d">Last 7 days</TabsTrigger>
-                <TabsTrigger value="30d">Last 30 days</TabsTrigger>
-                <TabsTrigger value="90d">Last 90 days</TabsTrigger>
+            <Tabs 
+              defaultValue="30d" 
+              value={dateRange} 
+              onValueChange={(v) => setDateRange(v as any)}
+              className="bg-white dark:bg-slate-900 rounded-lg shadow-sm p-1 border border-slate-200 dark:border-slate-800"
+            >
+              <TabsList className="grid grid-cols-3 h-9">
+                <TabsTrigger value="7d" className="text-xs">Last 7 days</TabsTrigger>
+                <TabsTrigger value="30d" className="text-xs">Last 30 days</TabsTrigger>
+                <TabsTrigger value="90d" className="text-xs">Last 90 days</TabsTrigger>
               </TabsList>
             </Tabs>
           </div>
@@ -228,54 +236,70 @@ export default function AnalyticsDashboard() {
             <>
               {/* Summary Cards */}
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                <Card>
-                  <CardHeader className="pb-2">
-                    <CardTitle className="text-sm font-medium text-muted-foreground">
+                <Card className="overflow-hidden border-0 bg-gradient-to-br from-blue-500/10 to-blue-600/5 shadow-md hover:shadow-lg transition-all duration-200">
+                  <CardHeader className="pb-2 flex flex-row items-center justify-between space-y-0 p-4">
+                    <CardTitle className="text-sm font-medium text-blue-600 dark:text-blue-400">
                       Total Visits
                     </CardTitle>
+                    <div className="rounded-full bg-blue-100 dark:bg-blue-900/30 p-2 text-blue-600 dark:text-blue-400">
+                      <Activity className="h-4 w-4" />
+                    </div>
                   </CardHeader>
-                  <CardContent>
-                    <div className="text-2xl font-bold">{data.totalVisits.toLocaleString()}</div>
+                  <CardContent className="p-4 pt-0">
+                    <div className="text-3xl font-bold text-slate-800 dark:text-slate-200">{data.totalVisits.toLocaleString()}</div>
+                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Total page views across all pages</p>
                   </CardContent>
                 </Card>
-                <Card>
-                  <CardHeader className="pb-2">
-                    <CardTitle className="text-sm font-medium text-muted-foreground">
-                      Unique Visitors
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="text-2xl font-bold">{data.uniqueVisitors.toLocaleString()}</div>
-                  </CardContent>
-                </Card>
-                <Card>
-                  <CardHeader className="pb-2">
-                    <CardTitle className="text-sm font-medium text-muted-foreground">
+                
+                <Card className="overflow-hidden border-0 bg-gradient-to-br from-green-500/10 to-green-600/5 shadow-md hover:shadow-lg transition-all duration-200">
+                  <CardHeader className="pb-2 flex flex-row items-center justify-between space-y-0 p-4">
+                    <CardTitle className="text-sm font-medium text-green-600 dark:text-green-400">
                       Itineraries Generated
                     </CardTitle>
+                    <div className="rounded-full bg-green-100 dark:bg-green-900/30 p-2 text-green-600 dark:text-green-400">
+                      <MapPin className="h-4 w-4" />
+                    </div>
                   </CardHeader>
-                  <CardContent>
-                    <div className="text-2xl font-bold">{data.totalItineraries.toLocaleString()}</div>
+                  <CardContent className="p-4 pt-0">
+                    <div className="text-3xl font-bold text-slate-800 dark:text-slate-200">{data.totalItineraries.toLocaleString()}</div>
+                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Successfully generated travel plans</p>
                   </CardContent>
                 </Card>
-                <Card>
-                  <CardHeader className="pb-2">
-                    <CardTitle className="text-sm font-medium text-muted-foreground">
-                      Shares
+                
+                <Card className="overflow-hidden border-0 bg-gradient-to-br from-indigo-500/10 to-indigo-600/5 shadow-md hover:shadow-lg transition-all duration-200">
+                  <CardHeader className="pb-2 flex flex-row items-center justify-between space-y-0 p-4">
+                    <CardTitle className="text-sm font-medium text-indigo-600 dark:text-indigo-400">
+                      Registered Users
                     </CardTitle>
+                    <div className="rounded-full bg-indigo-100 dark:bg-indigo-900/30 p-2 text-indigo-600 dark:text-indigo-400">
+                      <Users className="h-4 w-4" />
+                    </div>
                   </CardHeader>
-                  <CardContent>
-                    <div className="text-2xl font-bold">{data.totalShares.toLocaleString()}</div>
+                  <CardContent className="p-4 pt-0">
+                    <div className="text-3xl font-bold text-slate-800 dark:text-slate-200">{data.registeredUsers?.toLocaleString() || "0"}</div>
+                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Users with Google accounts</p>
                   </CardContent>
                 </Card>
-                <Card>
-                  <CardHeader className="pb-2">
-                    <CardTitle className="text-sm font-medium text-muted-foreground">
-                      Downloads
+                
+                <Card className="overflow-hidden border-0 bg-gradient-to-br from-amber-500/10 to-amber-600/5 shadow-md hover:shadow-lg transition-all duration-200">
+                  <CardHeader className="pb-2 flex flex-row items-center justify-between space-y-0 p-4">
+                    <CardTitle className="text-sm font-medium text-amber-600 dark:text-amber-400">
+                      Shares & Downloads
                     </CardTitle>
+                    <div className="rounded-full bg-amber-100 dark:bg-amber-900/30 p-2 text-amber-600 dark:text-amber-400">
+                      <Share2 className="h-4 w-4" />
+                    </div>
                   </CardHeader>
-                  <CardContent>
-                    <div className="text-2xl font-bold">{data.totalDownloads.toLocaleString()}</div>
+                  <CardContent className="p-4 pt-0">
+                    <div className="text-3xl font-bold text-slate-800 dark:text-slate-200">{(data.totalShares + data.totalDownloads).toLocaleString()}</div>
+                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                      <span className="inline-flex items-center mr-2">
+                        <Share2 className="h-3 w-3 mr-1 text-purple-500" /> {data.totalShares.toLocaleString()}
+                      </span>
+                      <span className="inline-flex items-center">
+                        <Download className="h-3 w-3 mr-1 text-amber-500" /> {data.totalDownloads.toLocaleString()}
+                      </span>
+                    </p>
                   </CardContent>
                 </Card>
               </div>
@@ -283,45 +307,103 @@ export default function AnalyticsDashboard() {
               {/* Charts */}
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 {/* Visits Chart */}
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Site Visits</CardTitle>
-                    <CardDescription>Total visits vs unique visitors</CardDescription>
+                <Card className="overflow-hidden border-0 bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800 shadow-md">
+                  <CardHeader className="border-b border-slate-200 dark:border-slate-700 bg-white/50 dark:bg-slate-900/50 pt-6">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <CardTitle className="text-lg font-semibold text-slate-800 dark:text-slate-200">Site Visits</CardTitle>
+                        <CardDescription className="text-slate-500 dark:text-slate-400">Total visits vs itineraries generated</CardDescription>
+                      </div>
+                      <div className="rounded-full bg-blue-100 dark:bg-blue-900/30 p-2 text-blue-600 dark:text-blue-400">
+                        <Activity className="h-4 w-4" />
+                      </div>
+                    </div>
                   </CardHeader>
-                  <CardContent className="h-80">
+                  <CardContent className="p-6">
+                    <div className="h-80">
                     <ResponsiveContainer width="100%" height="100%">
                       <LineChart
                         data={data.dailyData}
                         margin={{
-                          top: 5,
+                            top: 20,
                           right: 30,
                           left: 20,
-                          bottom: 5,
-                        }}
-                      >
-                        <CartesianGrid strokeDasharray="3 3" />
-                        <XAxis dataKey="date" />
-                        <YAxis />
-                        <Tooltip />
-                        <Legend />
-                        <Line type="monotone" dataKey="visits" stroke="#8884d8" activeDot={{ r: 8 }} />
-                        <Line type="monotone" dataKey="itineraries" stroke="#82ca9d" />
+                            bottom: 20,
+                          }}
+                        >
+                          <CartesianGrid strokeDasharray="3 3" stroke="#ccc" opacity={0.3} />
+                          <XAxis 
+                            dataKey="date" 
+                            stroke="#888" 
+                            fontSize={12}
+                            tickMargin={10}
+                            axisLine={{ stroke: '#888', strokeWidth: 1 }}
+                            tickLine={{ stroke: '#888', strokeWidth: 1 }}
+                          />
+                          <YAxis 
+                            stroke="#888" 
+                            fontSize={12}
+                            tickMargin={10}
+                            axisLine={{ stroke: '#888', strokeWidth: 1 }}
+                            tickLine={{ stroke: '#888', strokeWidth: 1 }}
+                          />
+                          <Tooltip 
+                            contentStyle={{ 
+                              backgroundColor: 'rgba(255, 255, 255, 0.9)',
+                              border: '1px solid #ccc',
+                              borderRadius: '4px',
+                              boxShadow: '0 2px 5px rgba(0,0,0,0.1)'
+                            }} 
+                          />
+                          <Legend 
+                            verticalAlign="top" 
+                            height={36} 
+                            iconType="circle"
+                          />
+                          <Line 
+                            type="monotone" 
+                            dataKey="visits" 
+                            name="Visits"
+                            stroke="#6366f1" 
+                            strokeWidth={2}
+                            dot={{ r: 3, strokeWidth: 1 }}
+                            activeDot={{ r: 6, strokeWidth: 1 }}
+                          />
+                          <Line 
+                            type="monotone" 
+                            dataKey="itineraries" 
+                            name="Itineraries"
+                            stroke="#10b981" 
+                            strokeWidth={2}
+                            dot={{ r: 3, strokeWidth: 1 }}
+                            activeDot={{ r: 6, strokeWidth: 1 }}
+                          />
                       </LineChart>
                     </ResponsiveContainer>
+                    </div>
                   </CardContent>
                 </Card>
 
                 {/* Top Destinations */}
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Top Destinations</CardTitle>
-                    <CardDescription>Most popular travel destinations</CardDescription>
+                <Card className="overflow-hidden border-0 bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800 shadow-md">
+                  <CardHeader className="border-b border-slate-200 dark:border-slate-700 bg-white/50 dark:bg-slate-900/50 pt-6">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <CardTitle className="text-lg font-semibold text-slate-800 dark:text-slate-200">Top Destinations</CardTitle>
+                        <CardDescription className="text-slate-500 dark:text-slate-400">Most popular travel destinations</CardDescription>
+                      </div>
+                      <div className="rounded-full bg-green-100 dark:bg-green-900/30 p-2 text-green-600 dark:text-green-400">
+                        <MapPin className="h-4 w-4" />
+                      </div>
+                    </div>
                   </CardHeader>
-                  <CardContent className="h-80">
+                  <CardContent className="p-6">
+                    <div className="flex flex-col lg:flex-row items-center justify-between h-80">
+                      <div className="w-full lg:w-1/2 h-full">
                     <ResponsiveContainer width="100%" height="100%">
                       <PieChart>
                         <Pie
-                          data={data.topDestinations}
+                              data={data.topDestinations.slice(0, 5)}
                           cx="50%"
                           cy="50%"
                           labelLine={false}
@@ -329,22 +411,60 @@ export default function AnalyticsDashboard() {
                           fill="#8884d8"
                           dataKey="count"
                           nameKey="destination"
-                          label={({ destination, percent }) => `${destination}: ${(percent * 100).toFixed(0)}%`}
-                        >
-                          {data.topDestinations.map((entry, index) => (
-                            <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                              label={({ destination, percent }) => `${(percent * 100).toFixed(0)}%`}
+                            >
+                              {data.topDestinations.slice(0, 5).map((entry, index) => (
+                                <Cell 
+                                  key={`cell-${index}`} 
+                                  fill={COLORS[index % COLORS.length]} 
+                                  stroke="rgba(255,255,255,0.3)"
+                                  strokeWidth={1}
+                                />
                           ))}
                         </Pie>
-                        <Tooltip />
-                        <Legend />
+                            <Tooltip 
+                              formatter={(value, name, props) => [`${value} trips`, props.payload.destination]}
+                              contentStyle={{ 
+                                backgroundColor: 'rgba(255, 255, 255, 0.9)',
+                                border: '1px solid #ccc',
+                                borderRadius: '4px',
+                                boxShadow: '0 2px 5px rgba(0,0,0,0.1)'
+                              }}
+                            />
                       </PieChart>
                     </ResponsiveContainer>
+                      </div>
+                      <div className="w-full lg:w-1/2 h-full overflow-y-auto pl-0 lg:pl-4 mt-4 lg:mt-0">
+                        <h4 className="font-medium text-sm mb-3 text-slate-600 dark:text-slate-300">Top 15 Destinations</h4>
+                        <div className="space-y-2">
+                          {data.topDestinations.slice(0, 15).map((destination, index) => (
+                            <div 
+                              key={index} 
+                              className="flex items-center justify-between p-2 rounded-md bg-white dark:bg-slate-800 shadow-sm"
+                            >
+                              <div className="flex items-center">
+                                <div 
+                                  className="w-3 h-3 rounded-full mr-2" 
+                                  style={{ backgroundColor: COLORS[index % COLORS.length] }}
+                                ></div>
+                                <span className="text-sm font-medium text-slate-700 dark:text-slate-300">
+                                  {destination.destination}
+                                </span>
+                              </div>
+                              <span className="text-xs font-semibold bg-slate-100 dark:bg-slate-700 px-2 py-1 rounded-full text-slate-700 dark:text-slate-300">
+                                {destination.count} trips
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
                   </CardContent>
                 </Card>
               </div>
 
               <Tabs defaultValue="overview" className="space-y-4">
-                <TabsList>
+                <TabsList className="bg-white dark:bg-slate-900 rounded-lg shadow-sm p-1 border border-slate-200 dark:border-slate-800">
                   <TabsTrigger value="overview">Overview</TabsTrigger>
                   <TabsTrigger value="destinations">Destinations</TabsTrigger>
                   <TabsTrigger value="engagement">Engagement</TabsTrigger>
@@ -352,35 +472,87 @@ export default function AnalyticsDashboard() {
 
                 <TabsContent value="overview" className="space-y-4">
                   <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                    <Card>
-                      <CardHeader>
-                        <CardTitle>Daily Activity</CardTitle>
-                        <CardDescription>
+                    <Card className="overflow-hidden border-0 bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800 shadow-md">
+                      <CardHeader className="border-b border-slate-200 dark:border-slate-700 bg-white/50 dark:bg-slate-900/50 pt-6">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <CardTitle className="text-lg font-semibold text-slate-800 dark:text-slate-200">Daily Activity</CardTitle>
+                            <CardDescription className="text-slate-500 dark:text-slate-400">
                           Visits and itinerary generations over time
                         </CardDescription>
+                          </div>
+                          <div className="rounded-full bg-blue-100 dark:bg-blue-900/30 p-2 text-blue-600 dark:text-blue-400">
+                            <TrendingUp className="h-4 w-4" />
+                          </div>
+                        </div>
                       </CardHeader>
-                      <CardContent>
+                      <CardContent className="p-6">
                         <ResponsiveContainer width="100%" height={300}>
                           <LineChart data={data.dailyData}>
-                            <CartesianGrid strokeDasharray="3 3" />
-                            <XAxis dataKey="date" />
-                            <YAxis />
-                            <Tooltip />
-                            <Line type="monotone" dataKey="visits" stroke="#8884d8" name="Visits" />
-                            <Line type="monotone" dataKey="itineraries" stroke="#82ca9d" name="Itineraries" />
+                            <CartesianGrid strokeDasharray="3 3" stroke="#ccc" opacity={0.3} />
+                            <XAxis 
+                              dataKey="date" 
+                              stroke="#888" 
+                              fontSize={12}
+                              tickMargin={10}
+                            />
+                            <YAxis 
+                              stroke="#888" 
+                              fontSize={12}
+                              tickMargin={10}
+                            />
+                            <Tooltip 
+                              contentStyle={{ 
+                                backgroundColor: 'rgba(255, 255, 255, 0.9)',
+                                border: '1px solid #ccc',
+                                borderRadius: '4px',
+                                boxShadow: '0 2px 5px rgba(0,0,0,0.1)'
+                              }} 
+                            />
+                            <Legend 
+                              verticalAlign="top" 
+                              height={36} 
+                              iconType="circle"
+                            />
+                            <Line 
+                              type="monotone" 
+                              dataKey="visits" 
+                              name="Visits" 
+                              stroke="#6366f1" 
+                              strokeWidth={2}
+                              dot={{ r: 3, strokeWidth: 1 }}
+                              activeDot={{ r: 6, strokeWidth: 1 }}
+                            />
+                            <Line 
+                              type="monotone" 
+                              dataKey="itineraries" 
+                              name="Itineraries" 
+                              stroke="#10b981" 
+                              strokeWidth={2}
+                              dot={{ r: 3, strokeWidth: 1 }}
+                              activeDot={{ r: 6, strokeWidth: 1 }}
+                            />
                           </LineChart>
                         </ResponsiveContainer>
                       </CardContent>
                     </Card>
 
-                    <Card>
-                      <CardHeader>
-                        <CardTitle>Success Rate</CardTitle>
-                        <CardDescription>
+                    <Card className="overflow-hidden border-0 bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800 shadow-md">
+                      <CardHeader className="border-b border-slate-200 dark:border-slate-700 bg-white/50 dark:bg-slate-900/50 pt-6">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <CardTitle className="text-lg font-semibold text-slate-800 dark:text-slate-200">Success Rate</CardTitle>
+                            <CardDescription className="text-slate-500 dark:text-slate-400">
                           Successful vs failed itinerary generations
                         </CardDescription>
+                          </div>
+                          <div className="rounded-full bg-green-100 dark:bg-green-900/30 p-2 text-green-600 dark:text-green-400">
+                            <Activity className="h-4 w-4" />
+                          </div>
+                        </div>
                       </CardHeader>
-                      <CardContent>
+                      <CardContent className="p-6">
+                        <div className="flex items-center justify-center">
                         <ResponsiveContainer width="100%" height={300}>
                           <PieChart>
                             <Pie
@@ -392,47 +564,79 @@ export default function AnalyticsDashboard() {
                               cy="50%"
                               labelLine={false}
                               label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
-                              outerRadius={80}
+                                outerRadius={100}
                               fill="#8884d8"
                               dataKey="value"
-                            >
-                              {[
-                                { name: 'Successful', value: data.successfulItineraries },
-                                { name: 'Failed', value: data.failedItineraries }
-                              ].map((entry, index) => (
-                                <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                              ))}
+                                stroke="rgba(255,255,255,0.3)"
+                                strokeWidth={1}
+                              >
+                                <Cell fill="#10b981" />
+                                <Cell fill="#ef4444" />
                             </Pie>
-                            <Tooltip />
+                              <Tooltip 
+                                formatter={(value) => [`${value} itineraries`]}
+                                contentStyle={{ 
+                                  backgroundColor: 'rgba(255, 255, 255, 0.9)',
+                                  border: '1px solid #ccc',
+                                  borderRadius: '4px',
+                                  boxShadow: '0 2px 5px rgba(0,0,0,0.1)'
+                                }}
+                              />
                           </PieChart>
                         </ResponsiveContainer>
+                        </div>
                       </CardContent>
                     </Card>
                   </div>
 
-                  <Card>
-                    <CardHeader>
-                      <CardTitle>Performance Metrics</CardTitle>
+                  <Card className="overflow-hidden border-0 bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800 shadow-md">
+                    <CardHeader className="border-b border-slate-200 dark:border-slate-700 bg-white/50 dark:bg-slate-900/50 pt-6">
+                      <div className="flex items-center justify-between">
+                        <CardTitle className="text-lg font-semibold text-slate-800 dark:text-slate-200">Performance Metrics</CardTitle>
+                        <div className="rounded-full bg-indigo-100 dark:bg-indigo-900/30 p-2 text-indigo-600 dark:text-indigo-400">
+                          <TrendingUp className="h-4 w-4" />
+                        </div>
+                      </div>
                     </CardHeader>
-                    <CardContent>
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        <div className="text-center">
-                          <div className="text-2xl font-bold text-blue-600">
+                    <CardContent className="p-6">
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div className="bg-white dark:bg-slate-800 rounded-lg p-4 shadow-sm border border-slate-200 dark:border-slate-700">
+                          <div className="flex items-center justify-between mb-2">
+                            <h3 className="text-sm font-medium text-slate-500 dark:text-slate-400">Response Time</h3>
+                            <div className="rounded-full bg-blue-100 dark:bg-blue-900/30 p-1.5 text-blue-600 dark:text-blue-400">
+                              <Activity className="h-3.5 w-3.5" />
+                            </div>
+                          </div>
+                          <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">
                             {data.averageResponseTime ? `${data.averageResponseTime.toFixed(0)}ms` : 'N/A'}
                           </div>
-                          <p className="text-sm text-muted-foreground">Average Response Time</p>
+                          <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Average API response time</p>
                         </div>
-                        <div className="text-center">
-                          <div className="text-2xl font-bold text-green-600">
+                        
+                        <div className="bg-white dark:bg-slate-800 rounded-lg p-4 shadow-sm border border-slate-200 dark:border-slate-700">
+                          <div className="flex items-center justify-between mb-2">
+                            <h3 className="text-sm font-medium text-slate-500 dark:text-slate-400">Success Rate</h3>
+                            <div className="rounded-full bg-green-100 dark:bg-green-900/30 p-1.5 text-green-600 dark:text-green-400">
+                              <Activity className="h-3.5 w-3.5" />
+                            </div>
+                          </div>
+                          <div className="text-2xl font-bold text-green-600 dark:text-green-400">
                             {data.totalItineraries > 0 ? `${((data.successfulItineraries / data.totalItineraries) * 100).toFixed(1)}%` : '0%'}
                           </div>
-                          <p className="text-sm text-muted-foreground">Success Rate</p>
+                          <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Itinerary generation success rate</p>
                         </div>
-                        <div className="text-center">
-                          <div className="text-2xl font-bold text-purple-600">
+                        
+                        <div className="bg-white dark:bg-slate-800 rounded-lg p-4 shadow-sm border border-slate-200 dark:border-slate-700">
+                          <div className="flex items-center justify-between mb-2">
+                            <h3 className="text-sm font-medium text-slate-500 dark:text-slate-400">Conversion Rate</h3>
+                            <div className="rounded-full bg-purple-100 dark:bg-purple-900/30 p-1.5 text-purple-600 dark:text-purple-400">
+                              <Activity className="h-3.5 w-3.5" />
+                            </div>
+                          </div>
+                          <div className="text-2xl font-bold text-purple-600 dark:text-purple-400">
                             {data.totalVisits > 0 ? `${((data.totalItineraries / data.totalVisits) * 100).toFixed(1)}%` : '0%'}
                           </div>
-                          <p className="text-sm text-muted-foreground">Conversion Rate</p>
+                          <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Visits that generate itineraries</p>
                         </div>
                       </div>
                     </CardContent>
@@ -440,21 +644,63 @@ export default function AnalyticsDashboard() {
                 </TabsContent>
 
                 <TabsContent value="destinations" className="space-y-4">
-                  <Card>
-                    <CardHeader>
-                      <CardTitle>Top Destinations</CardTitle>
-                      <CardDescription>
+                  <Card className="overflow-hidden border-0 bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800 shadow-md">
+                    <CardHeader className="border-b border-slate-200 dark:border-slate-700 bg-white/50 dark:bg-slate-900/50 pt-6">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <CardTitle className="text-lg font-semibold text-slate-800 dark:text-slate-200">Top Destinations</CardTitle>
+                          <CardDescription className="text-slate-500 dark:text-slate-400">
                         Most requested travel destinations
                       </CardDescription>
+                        </div>
+                        <div className="rounded-full bg-green-100 dark:bg-green-900/30 p-2 text-green-600 dark:text-green-400">
+                          <MapPin className="h-4 w-4" />
+                        </div>
+                      </div>
                     </CardHeader>
-                    <CardContent>
+                    <CardContent className="p-6">
                       <ResponsiveContainer width="100%" height={400}>
-                        <BarChart data={data.topDestinations}>
-                          <CartesianGrid strokeDasharray="3 3" />
-                          <XAxis dataKey="destination" />
-                          <YAxis />
-                          <Tooltip />
-                          <Bar dataKey="count" fill="#8884d8" />
+                        <BarChart 
+                          data={data.topDestinations}
+                          margin={{
+                            top: 20,
+                            right: 30,
+                            left: 20,
+                            bottom: 60,
+                          }}
+                        >
+                          <CartesianGrid strokeDasharray="3 3" stroke="#ccc" opacity={0.3} />
+                          <XAxis 
+                            dataKey="destination" 
+                            stroke="#888" 
+                            fontSize={12}
+                            tickMargin={10}
+                            angle={-45}
+                            textAnchor="end"
+                          />
+                          <YAxis 
+                            stroke="#888" 
+                            fontSize={12}
+                            tickMargin={10}
+                          />
+                          <Tooltip 
+                            formatter={(value) => [`${value} trips`]}
+                            contentStyle={{ 
+                              backgroundColor: 'rgba(255, 255, 255, 0.9)',
+                              border: '1px solid #ccc',
+                              borderRadius: '4px',
+                              boxShadow: '0 2px 5px rgba(0,0,0,0.1)'
+                            }}
+                          />
+                          <Bar 
+                            dataKey="count" 
+                            name="Trips"
+                            radius={[4, 4, 0, 0]}
+                          >
+                            {data.topDestinations.map((entry, index) => (
+                              <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                            ))}
+                          </Bar>
                         </BarChart>
                       </ResponsiveContainer>
                     </CardContent>
@@ -463,53 +709,137 @@ export default function AnalyticsDashboard() {
 
                 <TabsContent value="engagement" className="space-y-4">
                   <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                    <Card>
-                      <CardHeader>
-                        <CardTitle>Daily Shares & Downloads</CardTitle>
-                        <CardDescription>
+                    <Card className="overflow-hidden border-0 bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800 shadow-md">
+                      <CardHeader className="border-b border-slate-200 dark:border-slate-700 bg-white/50 dark:bg-slate-900/50 pt-6">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <CardTitle className="text-lg font-semibold text-slate-800 dark:text-slate-200">Daily Shares & Downloads</CardTitle>
+                            <CardDescription className="text-slate-500 dark:text-slate-400">
                           User engagement with generated itineraries
                         </CardDescription>
+                          </div>
+                          <div className="rounded-full bg-amber-100 dark:bg-amber-900/30 p-2 text-amber-600 dark:text-amber-400">
+                            <Share2 className="h-4 w-4" />
+                          </div>
+                        </div>
                       </CardHeader>
-                      <CardContent>
+                      <CardContent className="p-6">
                         <ResponsiveContainer width="100%" height={300}>
-                          <LineChart data={data.dailyData}>
-                            <CartesianGrid strokeDasharray="3 3" />
-                            <XAxis dataKey="date" />
-                            <YAxis />
-                            <Tooltip />
-                            <Line type="monotone" dataKey="shares" stroke="#ff7300" name="Shares" />
-                            <Line type="monotone" dataKey="downloads" stroke="#00ff00" name="Downloads" />
+                          <LineChart 
+                            data={data.dailyData}
+                            margin={{
+                              top: 20,
+                              right: 30,
+                              left: 20,
+                              bottom: 20,
+                            }}
+                          >
+                            <CartesianGrid strokeDasharray="3 3" stroke="#ccc" opacity={0.3} />
+                            <XAxis 
+                              dataKey="date" 
+                              stroke="#888" 
+                              fontSize={12}
+                              tickMargin={10}
+                            />
+                            <YAxis 
+                              stroke="#888" 
+                              fontSize={12}
+                              tickMargin={10}
+                            />
+                            <Tooltip 
+                              contentStyle={{ 
+                                backgroundColor: 'rgba(255, 255, 255, 0.9)',
+                                border: '1px solid #ccc',
+                                borderRadius: '4px',
+                                boxShadow: '0 2px 5px rgba(0,0,0,0.1)'
+                              }}
+                            />
+                            <Legend 
+                              verticalAlign="top" 
+                              height={36} 
+                              iconType="circle"
+                            />
+                            <Line 
+                              type="monotone" 
+                              dataKey="shares" 
+                              name="Shares" 
+                              stroke="#9333ea" 
+                              strokeWidth={2}
+                              dot={{ r: 3, strokeWidth: 1 }}
+                              activeDot={{ r: 6, strokeWidth: 1 }}
+                            />
+                            <Line 
+                              type="monotone" 
+                              dataKey="downloads" 
+                              name="Downloads" 
+                              stroke="#f59e0b" 
+                              strokeWidth={2}
+                              dot={{ r: 3, strokeWidth: 1 }}
+                              activeDot={{ r: 6, strokeWidth: 1 }}
+                            />
                           </LineChart>
                         </ResponsiveContainer>
                       </CardContent>
                     </Card>
 
-                    <Card>
-                      <CardHeader>
-                        <CardTitle>Engagement Metrics</CardTitle>
-                        <CardDescription>
-                          Share and download statistics
+                    <Card className="overflow-hidden border-0 bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800 shadow-md">
+                      <CardHeader className="border-b border-slate-200 dark:border-slate-700 bg-white/50 dark:bg-slate-900/50 pt-6">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <CardTitle className="text-lg font-semibold text-slate-800 dark:text-slate-200">Engagement Metrics</CardTitle>
+                            <CardDescription className="text-slate-500 dark:text-slate-400">
+                              Shares and downloads per itinerary
                         </CardDescription>
+                          </div>
+                          <div className="rounded-full bg-purple-100 dark:bg-purple-900/30 p-2 text-purple-600 dark:text-purple-400">
+                            <TrendingUp className="h-4 w-4" />
+                          </div>
+                        </div>
                       </CardHeader>
-                      <CardContent>
-                        <div className="space-y-4">
-                          <div className="flex justify-between items-center">
-                            <span className="text-sm font-medium">Share Rate</span>
-                            <span className="text-sm text-muted-foreground">
+                      <CardContent className="p-6">
+                        <div className="grid grid-cols-1 gap-6">
+                          <div className="bg-white dark:bg-slate-800 rounded-lg p-6 shadow-sm border border-slate-200 dark:border-slate-700">
+                            <div className="flex items-center justify-between mb-4">
+                              <h3 className="text-sm font-medium text-slate-500 dark:text-slate-400">Share Rate</h3>
+                              <div className="text-purple-600 dark:text-purple-400 bg-purple-100 dark:bg-purple-900/30 px-2 py-1 rounded-full text-xs font-medium">
                               {data.totalItineraries > 0 ? `${((data.totalShares / data.totalItineraries) * 100).toFixed(1)}%` : '0%'}
-                            </span>
+                              </div>
+                            </div>
+                            <div className="w-full bg-slate-200 dark:bg-slate-700 rounded-full h-2.5">
+                              <div 
+                                className="bg-purple-600 h-2.5 rounded-full" 
+                                style={{ 
+                                  width: data.totalItineraries > 0 
+                                    ? `${Math.min(100, (data.totalShares / data.totalItineraries) * 100)}%` 
+                                    : '0%' 
+                                }}
+                              ></div>
+                            </div>
+                            <p className="text-xs text-slate-500 dark:text-slate-400 mt-2">
+                              {data.totalShares} shares from {data.totalItineraries} itineraries
+                            </p>
                           </div>
-                          <div className="flex justify-between items-center">
-                            <span className="text-sm font-medium">Download Rate</span>
-                            <span className="text-sm text-muted-foreground">
+                          
+                          <div className="bg-white dark:bg-slate-800 rounded-lg p-6 shadow-sm border border-slate-200 dark:border-slate-700">
+                            <div className="flex items-center justify-between mb-4">
+                              <h3 className="text-sm font-medium text-slate-500 dark:text-slate-400">Download Rate</h3>
+                              <div className="text-amber-600 dark:text-amber-400 bg-amber-100 dark:bg-amber-900/30 px-2 py-1 rounded-full text-xs font-medium">
                               {data.totalItineraries > 0 ? `${((data.totalDownloads / data.totalItineraries) * 100).toFixed(1)}%` : '0%'}
-                            </span>
+                              </div>
+                            </div>
+                            <div className="w-full bg-slate-200 dark:bg-slate-700 rounded-full h-2.5">
+                              <div 
+                                className="bg-amber-600 h-2.5 rounded-full" 
+                                style={{ 
+                                  width: data.totalItineraries > 0 
+                                    ? `${Math.min(100, (data.totalDownloads / data.totalItineraries) * 100)}%` 
+                                    : '0%' 
+                                }}
+                              ></div>
                           </div>
-                          <div className="flex justify-between items-center">
-                            <span className="text-sm font-medium">Total Engagements</span>
-                            <span className="text-sm text-muted-foreground">
-                              {(data.totalShares + data.totalDownloads).toLocaleString()}
-                            </span>
+                            <p className="text-xs text-slate-500 dark:text-slate-400 mt-2">
+                              {data.totalDownloads} downloads from {data.totalItineraries} itineraries
+                            </p>
                           </div>
                         </div>
                       </CardContent>

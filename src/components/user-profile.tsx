@@ -3,7 +3,7 @@
 import { useSession, signOut, signIn } from "next-auth/react";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import { LogOut, User } from "lucide-react";
+import { LogOut, User, BarChart2 } from "lucide-react";
 import Image from "next/image";
 import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
@@ -44,6 +44,9 @@ export function UserProfile() {
       document.removeEventListener("mousedown", handleClickOutside);
     };
   }, []);
+
+  // Check if user is admin (has the specific email)
+  const isAdmin = session?.user?.email === "richadyaminali@gmail.com";
 
   if (status === "loading") {
     return (
@@ -94,6 +97,15 @@ export function UserProfile() {
           >
             Dashboard
           </button>
+          {isAdmin && (
+            <button
+              onClick={() => handleNavigation("/admin")}
+              className="w-full text-left block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-slate-800 flex items-center"
+            >
+              <BarChart2 size={16} className="mr-2" />
+              Admin Dashboard
+            </button>
+          )}
           <button
             onClick={handleSignOut}
             className="w-full text-left px-4 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-gray-100 dark:hover:bg-slate-800 flex items-center"

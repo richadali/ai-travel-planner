@@ -8,6 +8,7 @@ import { LoadingSpinner } from "@/components/loading-spinner";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { ItineraryType } from "@/types";
+import Script from "next/script";
 
 // Lazy load the ItineraryDisplay component
 const ItineraryDisplay = React.lazy(() => import("@/components/itinerary-display").then(mod => ({ 
@@ -32,6 +33,7 @@ export default function TripDetail() {
   const [trip, setTrip] = useState<Trip | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [structuredData, setStructuredData] = useState<string>('');
 
   useEffect(() => {
     const fetchTrip = async () => {
@@ -47,6 +49,48 @@ export default function TripDetail() {
         }
 
         setTrip(result.trip);
+        
+        // Create structured data for SEO
+        if (result.trip) {
+          const trip = result.trip;
+          const jsonLd = {
+            "@context": "https://schema.org",
+            "@type": "TravelAction",
+            "agent": {
+              "@type": "Person",
+              "name": "Traveler"
+            },
+            "location": {
+              "@type": "Place",
+              "name": trip.destination,
+              "address": trip.destination
+            },
+            "startTime": trip.createdAt,
+            "endTime": new Date(new Date(trip.createdAt).getTime() + (trip.duration * 24 * 60 * 60 * 1000)).toISOString(),
+            "instrument": "AI Travel Planner",
+            "target": {
+              "@type": "EntryPoint",
+              "urlTemplate": `https://aitravelplanner.richadali.dev/trips/${trip.id}`,
+              "inLanguage": "en-US",
+              "actionPlatform": [
+                "https://schema.org/DesktopWebPlatform",
+                "https://schema.org/MobileWebPlatform"
+              ]
+            },
+            "result": {
+              "@type": "Trip",
+              "name": `${trip.duration}-day trip to ${trip.destination}`,
+              "description": `A ${trip.duration}-day travel itinerary for ${trip.destination} with a budget of ${trip.currency}${trip.budget} for ${trip.peopleCount} people.`,
+              "itinerary": Object.keys(trip.itinerary).map(day => ({
+                "@type": "TouristAttraction",
+                "name": `Day ${day} in ${trip.destination}`,
+                "description": trip.itinerary[day].activities.map((activity: any) => activity.title).join(", ")
+              }))
+            }
+          };
+          
+          setStructuredData(JSON.stringify(jsonLd));
+        }
       } catch (err: any) {
         console.error("Error fetching trip details:", err);
         setError(err.message || "An error occurred while fetching the trip details");
@@ -71,6 +115,13 @@ export default function TripDetail() {
 
   return (
     <div className="flex min-h-screen flex-col">
+      {/* Add structured data for SEO */}
+      {structuredData && (
+        <Script id="structured-data" type="application/ld+json">
+          {structuredData}
+        </Script>
+      )}
+      
       <Header />
       <main className="flex-1 container mx-auto py-8 px-4 md:px-6 max-w-7xl">
         {isLoading ? (

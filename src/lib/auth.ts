@@ -3,14 +3,13 @@ import { prisma } from "./prisma";
 import NextAuth from "next-auth";
 import Google from "next-auth/providers/google";
 import type { NextAuthConfig } from "next-auth";
-import { cookies } from "next/headers";
-import { JWT } from "next-auth/jwt";
 
 // Extend the JWT type to include custom properties
 declare module "next-auth/jwt" {
   interface JWT {
     id?: string;
     provider?: string;
+    email?: string;
   }
 }
 
@@ -68,6 +67,10 @@ export const authConfig: NextAuthConfig = {
       if (account && user) {
         token.id = user.id;
         token.provider = account.provider;
+        // Ensure email is properly typed
+        if (user.email) {
+          token.email = user.email;
+        }
       }
       
       return token;
@@ -114,54 +117,8 @@ export async function getCurrentUserId() {
   return session?.user?.id;
 }
 
-// Client-side authentication helpers
-export const AuthService = {
-  // For admin authentication (keeping this for backward compatibility)
-  async login(email: string, password: string): Promise<boolean> {
-    try {
-      const response = await fetch("/api/admin/auth", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ email, password }),
-      });
-
-      return response.ok;
-    } catch (error) {
-      console.error("Authentication error:", error);
-      return false;
-    }
-  },
-
-  // Set session cookie for admin (keeping this for backward compatibility)
-  setSessionCookie(sessionToken: string): void {
-    document.cookie = `admin_session=${sessionToken}; path=/; max-age=${24 * 60 * 60}; SameSite=Strict`;
-  },
-
-  // Clear session cookie for admin (keeping this for backward compatibility)
-  clearSessionCookie(): void {
-    document.cookie = `admin_session=; path=/; max-age=0; SameSite=Strict`;
-  },
-};
-
-// Server-side function for admin authentication (keeping this for backward compatibility)
-export async function getSessionToken(req: Request): Promise<string | null> {
-  const cookieHeader = req.headers.get("cookie");
-  if (!cookieHeader) return null;
-  
-  const cookies = cookieHeader.split(";").map(c => c.trim());
-  const sessionCookie = cookies.find(c => c.startsWith("admin_session="));
-  
-  if (!sessionCookie) return null;
-  return sessionCookie.split("=")[1];
-}
-
-// Server-side function to check admin authentication (keeping this for backward compatibility)
-export async function isAdminAuthenticated(req: Request): Promise<boolean> {
-  const sessionToken = await getSessionToken(req);
-  if (!sessionToken) return false;
-  
-  // In a real app, validate against a database of sessions
-  return sessionToken.startsWith("admin_");
+// Helper function to check if the current user is an admin
+export async function isAdmin() {
+  const session = await getServerSession();
+  return session?.user?.email === "richadyaminali@gmail.com";
 } 

@@ -148,7 +148,7 @@ export const ItineraryDisplay: React.FC<ItineraryDisplayProps> = ({
 
       let currentTripId = tripId;
       let shareUrl;
-
+        
       // If user is logged in and we don't have a tripId, save the trip first
       if (session && !currentTripId) {
         try {
@@ -166,7 +166,7 @@ export const ItineraryDisplay: React.FC<ItineraryDisplayProps> = ({
               itinerary: itinerary,
             }),
           });
-
+          
           if (!saveResponse.ok) {
             const errorData = await saveResponse.json();
             throw new Error(errorData.error || 'Failed to save trip');
@@ -179,17 +179,17 @@ export const ItineraryDisplay: React.FC<ItineraryDisplayProps> = ({
           setIsSaved(true);
           
           // Create share link for authenticated users
-          const shareResponse = await fetch('/api/trips/share', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-              tripId: currentTripId,
+        const shareResponse = await fetch('/api/trips/share', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            tripId: currentTripId,
               ownerName: session.user.name || 'Travel Planner User',
-              expiryDays: 30,
-            }),
-          });
+            expiryDays: 30,
+          }),
+        });
 
           if (!shareResponse.ok) {
             throw new Error('Failed to create share link');
@@ -257,46 +257,46 @@ export const ItineraryDisplay: React.FC<ItineraryDisplayProps> = ({
 
       // For authenticated users, track the download and save the trip
       if (session) {
-        let currentTripId = tripId;
+      let currentTripId = tripId;
 
         // If we don't have a tripId, save the trip first
         if (!currentTripId && !isSaved) {
-          try {
-            const saveResponse = await fetch('/api/trips', {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-              },
-              body: JSON.stringify({
-                destination: tripMetadata.destination,
-                duration: tripMetadata.duration,
-                peopleCount: tripMetadata.peopleCount,
-                budget: tripMetadata.budget,
-                currency: tripMetadata.currency || 'INR',
-                itinerary: itinerary,
-              }),
-            });
+        try {
+          const saveResponse = await fetch('/api/trips', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              destination: tripMetadata.destination,
+              duration: tripMetadata.duration,
+              peopleCount: tripMetadata.peopleCount,
+              budget: tripMetadata.budget,
+              currency: tripMetadata.currency || 'INR',
+              itinerary: itinerary,
+            }),
+          });
 
             if (saveResponse.ok) {
               const saveData = await saveResponse.json();
-              currentTripId = saveData.trip.id;
+          currentTripId = saveData.trip.id;
               
               // Mark as saved since we just saved it
               setIsSaved(true);
-              
-              // Track the download
-              fetch('/api/trips/download', {
-                method: 'POST',
-                headers: {
-                  'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                  tripId: currentTripId,
-                  downloadType: 'pdf',
-                }),
-              }).catch(error => {
-                console.error('Failed to track download:', error);
-              });
+
+      // Track the download
+      fetch('/api/trips/download', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          tripId: currentTripId,
+          downloadType: 'pdf',
+        }),
+      }).catch(error => {
+        console.error('Failed to track download:', error);
+      });
             }
           } catch (error) {
             console.error('Error saving trip before download:', error);
@@ -322,7 +322,7 @@ export const ItineraryDisplay: React.FC<ItineraryDisplayProps> = ({
         pdfMetadata,
         `${tripMetadata.destination.replace(/\s+/g, '_')}_Travel_Itinerary.pdf`
       );
-      
+
       setSuccessMessage('PDF downloaded successfully!');
     } catch (error: any) {
       console.error('Error generating PDF:', error);
