@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # ------------------------------
-# AI Travel Planner Deployment Script
+# AI Travel Planner Deployment Script (Safe Permissions)
 # ------------------------------
 
 echo "🚀 Starting deployment for ai-travel-planner"
@@ -21,7 +21,7 @@ npm install || { echo "❌ npm install failed"; exit 1; }
 echo "🏗️ Building project for production..."
 npm run build || { echo "❌ Build failed"; exit 1; }
 
-# Set ownership to root:root for deployment consistency
+# Set ownership to root:root for consistency
 echo "🔧 Setting file ownership to root:root..."
 chown -R root:root /var/www/aitravelplanner.richadali.dev
 
@@ -29,12 +29,16 @@ chown -R root:root /var/www/aitravelplanner.richadali.dev
 echo "🔒 Setting directory permissions to 755..."
 find /var/www/aitravelplanner.richadali.dev -type d -exec chmod 755 {} \;
 
-# Set file permissions to 644
-echo "🔒 Setting file permissions to 644..."
-find /var/www/aitravelplanner.richadali.dev -type f -exec chmod 644 {} \;
+# Set file permissions to 644 except node_modules/.bin
+echo "🔒 Setting file permissions to 644 (excluding node_modules/.bin)..."
+find /var/www/aitravelplanner.richadali.dev -type f ! -path "*/node_modules/.bin/*" -exec chmod 644 {} \;
 
-# Restart the PM2 process
-echo "🔄 Restarting PM2 process..."
-pm2 restart ai-travel-planner || { echo "❌ PM2 restart failed"; exit 1; }
+# Ensure node_modules/.bin files have executable permissions
+echo "🔧 Setting executable permissions for node_modules/.bin/..."
+find /var/www/aitravelplanner.richadali.dev/node_modules/.bin -type f -exec chmod 755 {} \;
+
+# Restart the PM2 process with environment reload
+echo "🔄 Restarting PM2 process with updated environment..."
+pm2 restart ai-travel-planner --update-env || { echo "❌ PM2 restart failed"; exit 1; }
 
 echo "✅ Deployment completed successfully!"
