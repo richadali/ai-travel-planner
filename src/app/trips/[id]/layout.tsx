@@ -2,15 +2,17 @@ import { Metadata } from "next";
 import { prisma } from "@/lib/prisma";
 
 interface Props {
-  params: { id: string };
+  params: Promise<{ id: string }>;
   children: React.ReactNode;
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   try {
+    const { id } = await params;
+    
     // Fetch trip data from database
     const trip = await prisma.trip.findUnique({
-      where: { id: params.id },
+      where: { id },
       select: {
         destination: true,
         duration: true,
@@ -37,7 +39,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
         title,
         description,
         type: "article",
-        url: `https://aitravelplanner.richadali.dev/trips/${params.id}`,
+        url: `https://aitravelplanner.richadali.dev/trips/${id}`,
         images: [
           {
             url: `https://aitravelplanner.richadali.dev/api/og?title=${encodeURIComponent(trip.destination)}&destination=${encodeURIComponent(`${trip.duration}-day Itinerary`)}`,
