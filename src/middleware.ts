@@ -9,10 +9,16 @@ export async function middleware(request: NextRequest) {
   if (
     pathname.startsWith('/_next') || 
     pathname.startsWith('/static') || 
-    pathname.startsWith('/api') || 
+    pathname.startsWith('/api/auth') || // Skip NextAuth routes completely
+    pathname === '/api/auth/callback/google' ||
     pathname === '/login' ||
     pathname === '/favicon.ico'
   ) {
+    return NextResponse.next();
+  }
+  
+  // For other API routes, only skip the analytics tracking
+  if (pathname.startsWith('/api')) {
     return NextResponse.next();
   }
   
@@ -125,5 +131,8 @@ const EXCLUDED_PATHS = [
 }
 
 export const config = {
-  matcher: ["/((?!api/|_next/static|_next/image|favicon.ico).*)"],
+  matcher: [
+    // Match all paths except static files, images, and specific auth paths
+    "/((?!_next/static|_next/image|favicon.ico|api/auth).*)"
+  ],
 }; 

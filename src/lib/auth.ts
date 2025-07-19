@@ -80,7 +80,7 @@ export const authConfig: NextAuthConfig = {
     signIn: "/login",
     error: "/login",
   },
-  debug: false,
+  debug: process.env.NODE_ENV === "development",
   session: {
     strategy: "jwt",
     maxAge: 30 * 24 * 60 * 60, // 30 days
@@ -95,7 +95,9 @@ export const authConfig: NextAuthConfig = {
         secure: process.env.NODE_ENV === "production",
       },
     },
-  }
+  },
+  // Add trusted hosts configuration
+  trustHost: true,
 };
 
 export const { handlers, auth, signIn, signOut } = NextAuth(authConfig);
