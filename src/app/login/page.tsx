@@ -10,6 +10,9 @@ import { Header } from "@/components/header";
 import { Footer } from "@/components/footer";
 import Link from "next/link";
 
+// Force dynamic rendering for this page
+export const dynamic = 'force-dynamic';
+
 // Separate component that uses useSearchParams
 function LoginContent() {
   const router = useRouter();
