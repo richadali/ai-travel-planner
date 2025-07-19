@@ -2,15 +2,17 @@ import { Metadata } from "next";
 import { prisma } from "@/lib/prisma";
 
 interface Props {
-  params: { shareId: string };
+  params: Promise<{ shareId: string }>;
   children: React.ReactNode;
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   try {
+    const { shareId } = await params;
+    
     // Fetch shared trip data from database
     const trip = await prisma.trip.findUnique({
-      where: { shareId: params.shareId },
+      where: { shareId },
       select: {
         destination: true,
         duration: true,
@@ -49,7 +51,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
         title,
         description,
         type: "article",
-        url: `https://aitravelplanner.richadali.dev/trips/share/${params.shareId}`,
+        url: `https://aitravelplanner.richadali.dev/trips/share/${shareId}`,
         images: [
           {
             url: `https://aitravelplanner.richadali.dev/api/og?title=${encodeURIComponent(trip.destination)}&destination=${encodeURIComponent(`${trip.duration}-day Itinerary`)}`,
