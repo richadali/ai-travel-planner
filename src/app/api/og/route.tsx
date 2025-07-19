@@ -22,11 +22,6 @@ export async function GET(request: NextRequest) {
       });
     }
     
-    // Load the logo from the public directory
-    const logoData = await fetch(new URL('../../../public/logo.png', import.meta.url)).then(
-      (res) => res.arrayBuffer(),
-    );
-    
     return new ImageResponse(
       (
         <div
@@ -52,16 +47,6 @@ export async function GET(request: NextRequest) {
               marginBottom: '30px',
             }}
           >
-            <img
-              src={logoData as unknown as string}
-              width={80}
-              height={80}
-              style={{
-                borderRadius: '12px',
-                marginRight: '16px',
-              }}
-              alt="AI Travel Planner Logo"
-            />
             <div
               style={{
                 fontSize: '30px',
