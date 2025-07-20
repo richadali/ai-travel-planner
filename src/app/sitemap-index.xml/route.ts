@@ -17,7 +17,7 @@ export function GET(): Response {
   return new Response(xml, {
     headers: {
       'Content-Type': 'application/xml',
-      'Cache-Control': 'public, max-age=86400', // Cache for 24 hours
+      'Cache-Control': 'no-cache', // Disable caching to ensure fresh content
     },
   });
 } 
