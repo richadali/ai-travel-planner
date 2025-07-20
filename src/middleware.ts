@@ -5,17 +5,6 @@ import { getToken } from "next-auth/jwt";
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  // Handle OG image specifically to ensure proper cache headers
-  if (pathname === '/og.png') {
-    const response = NextResponse.next();
-    
-    // Set cache control headers for OG image
-    response.headers.set('Cache-Control', 'public, max-age=3600, must-revalidate');
-    response.headers.set('Content-Type', 'image/png');
-    
-    return response;
-  }
-
   // Skip middleware for static assets, API routes, and login page
   if (
     pathname.startsWith('/_next') || 
@@ -86,8 +75,6 @@ export async function middleware(request: NextRequest) {
 export const config = {
   matcher: [
     // Match all paths except static files, images, and specific auth paths
-    "/((?!_next/static|_next/image|favicon.ico|api/auth).*)",
-    // Also match the OG image specifically
-    "/og.png"
+    "/((?!_next/static|_next/image|favicon.ico|api/auth).*)"
   ],
 }; 

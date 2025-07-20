@@ -2,9 +2,8 @@ import { ImageResponse } from 'next/og';
 import { NextRequest } from 'next/server';
  
 export const runtime = 'edge';
-
-// Set cache control headers for better social media platform handling
-export function GET(request: NextRequest) {
+ 
+export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     
@@ -14,13 +13,11 @@ export function GET(request: NextRequest) {
     
     // Use custom OG image if no specific parameters are provided
     if (!searchParams.has('title') && !searchParams.has('destination')) {
-      // Instead of redirecting, serve the static OG image with proper headers
+      // Redirect to the static OG image
       return new Response(null, {
         status: 302,
         headers: {
-          'Location': '/og.png',
-          'Cache-Control': 'public, max-age=3600, must-revalidate',
-          'Content-Type': 'image/png',
+          Location: '/og.png',
         },
       });
     }
@@ -107,10 +104,6 @@ export function GET(request: NextRequest) {
       {
         width: 1200,
         height: 630,
-        headers: {
-          'Cache-Control': 'public, max-age=3600, must-revalidate',
-          'Content-Type': 'image/png',
-        },
       },
     );
   } catch (e) {
