@@ -1,63 +1,40 @@
 import { MetadataRoute } from 'next';
+import { prisma } from '@/lib/prisma';
 
-export default function sitemap(): MetadataRoute.Sitemap {
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = 'https://aitravelplanner.richadali.dev';
 
-  return [
+  // Get all public shared trips
+  const sharedTrips = await prisma.tripShare.findMany({
+    select: {
+      shareId: true,
+      createdAt: true,
+    },
+    where: {
+      expiresAt: {
+        gt: new Date(), // Only include non-expired shares
+      },
+    },
+    take: 100, // Limit to 100 entries to avoid huge sitemaps
+  });
+
+  // Base URLs
+  const staticUrls: MetadataRoute.Sitemap = [
     {
       url: baseUrl,
       lastModified: new Date(),
       changeFrequency: 'daily',
       priority: 1,
     },
-    {
-      url: `${baseUrl}/dashboard`,
-      lastModified: new Date(),
-      changeFrequency: 'daily',
-      priority: 0.8,
-    },
-    {
-      url: `${baseUrl}/login`,
-      lastModified: new Date(),
-      changeFrequency: 'monthly',
-      priority: 0.5,
-    },
-    {
-      url: `${baseUrl}/trips`,
-      lastModified: new Date(),
-      changeFrequency: 'daily',
-      priority: 0.7,
-    },
-    // Popular destinations that could be added dynamically in the future
-    {
-      url: `${baseUrl}/destinations/paris`,
-      lastModified: new Date(),
-      changeFrequency: 'weekly',
-      priority: 0.6,
-    },
-    {
-      url: `${baseUrl}/destinations/new-york`,
-      lastModified: new Date(),
-      changeFrequency: 'weekly',
-      priority: 0.6,
-    },
-    {
-      url: `${baseUrl}/destinations/tokyo`,
-      lastModified: new Date(),
-      changeFrequency: 'weekly',
-      priority: 0.6,
-    },
-    {
-      url: `${baseUrl}/destinations/london`,
-      lastModified: new Date(),
-      changeFrequency: 'weekly',
-      priority: 0.6,
-    },
-    {
-      url: `${baseUrl}/destinations/dubai`,
-      lastModified: new Date(),
-      changeFrequency: 'weekly',
-      priority: 0.6,
-    },
   ];
+
+  // Shared trip URLs
+  const sharedTripUrls: MetadataRoute.Sitemap = sharedTrips.map((trip) => ({
+    url: `${baseUrl}/trips/share/${trip.shareId}`,
+    lastModified: trip.createdAt,
+    changeFrequency: 'monthly',
+    priority: 0.7,
+  }));
+
+  return [...staticUrls, ...sharedTripUrls];
 } 
