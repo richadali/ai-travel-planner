@@ -246,7 +246,7 @@ export default function AnalyticsDashboard() {
                     </div>
                   </CardHeader>
                   <CardContent className="p-4 pt-0">
-                    <div className="text-3xl font-bold text-slate-800 dark:text-slate-200">{data?.totalVisits?.toLocaleString() || '0'}</div>
+                    <div className="text-3xl font-bold text-slate-800 dark:text-slate-200">{data.totalVisits.toLocaleString()}</div>
                     <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Total page views across all pages</p>
                   </CardContent>
                 </Card>
@@ -261,7 +261,7 @@ export default function AnalyticsDashboard() {
                     </div>
                   </CardHeader>
                   <CardContent className="p-4 pt-0">
-                    <div className="text-3xl font-bold text-slate-800 dark:text-slate-200">{data?.totalItineraries?.toLocaleString() || '0'}</div>
+                    <div className="text-3xl font-bold text-slate-800 dark:text-slate-200">{data.totalItineraries.toLocaleString()}</div>
                     <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Successfully generated travel plans</p>
                   </CardContent>
                 </Card>
@@ -276,7 +276,7 @@ export default function AnalyticsDashboard() {
                     </div>
                   </CardHeader>
                   <CardContent className="p-4 pt-0">
-                    <div className="text-3xl font-bold text-slate-800 dark:text-slate-200">{data?.registeredUsers?.toLocaleString() || "0"}</div>
+                    <div className="text-3xl font-bold text-slate-800 dark:text-slate-200">{data.registeredUsers?.toLocaleString() || "0"}</div>
                     <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Users with Google accounts</p>
                   </CardContent>
                 </Card>
@@ -291,13 +291,13 @@ export default function AnalyticsDashboard() {
                     </div>
                   </CardHeader>
                   <CardContent className="p-4 pt-0">
-                    <div className="text-3xl font-bold text-slate-800 dark:text-slate-200">{((data?.totalShares || 0) + (data?.totalDownloads || 0)).toLocaleString()}</div>
+                    <div className="text-3xl font-bold text-slate-800 dark:text-slate-200">{(data.totalShares + data.totalDownloads).toLocaleString()}</div>
                     <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
                       <span className="inline-flex items-center mr-2">
-                        <Share2 className="h-3 w-3 mr-1 text-purple-500" /> {data?.totalShares?.toLocaleString() || '0'}
+                        <Share2 className="h-3 w-3 mr-1 text-purple-500" /> {data.totalShares.toLocaleString()}
                       </span>
                       <span className="inline-flex items-center">
-                        <Download className="h-3 w-3 mr-1 text-amber-500" /> {data?.totalDownloads?.toLocaleString() || '0'}
+                        <Download className="h-3 w-3 mr-1 text-amber-500" /> {data.totalDownloads.toLocaleString()}
                       </span>
                     </p>
                   </CardContent>
@@ -323,7 +323,7 @@ export default function AnalyticsDashboard() {
                     <div className="h-80">
                     <ResponsiveContainer width="100%" height="100%">
                       <LineChart
-                        data={data?.dailyData || []}
+                        data={data.dailyData}
                         margin={{
                             top: 20,
                           right: 30,
@@ -403,7 +403,7 @@ export default function AnalyticsDashboard() {
                     <ResponsiveContainer width="100%" height="100%">
                       <PieChart>
                         <Pie
-                              data={(data?.topDestinations || []).slice(0, 5)}
+                              data={data.topDestinations.slice(0, 5)}
                           cx="50%"
                           cy="50%"
                           labelLine={false}
@@ -413,7 +413,7 @@ export default function AnalyticsDashboard() {
                           nameKey="destination"
                               label={({ destination, percent }) => `${(percent * 100).toFixed(0)}%`}
                             >
-                              {(data?.topDestinations || []).slice(0, 5).map((entry, index) => (
+                              {data.topDestinations.slice(0, 5).map((entry, index) => (
                                 <Cell 
                                   key={`cell-${index}`} 
                                   fill={COLORS[index % COLORS.length]} 
@@ -437,7 +437,7 @@ export default function AnalyticsDashboard() {
                       <div className="w-full lg:w-1/2 h-full overflow-y-auto pl-0 lg:pl-4 mt-4 lg:mt-0">
                         <h4 className="font-medium text-sm mb-3 text-slate-600 dark:text-slate-300">Top 15 Destinations</h4>
                         <div className="space-y-2">
-                          {(data?.topDestinations || []).slice(0, 15).map((destination, index) => (
+                          {data.topDestinations.slice(0, 15).map((destination, index) => (
                             <div 
                               key={index} 
                               className="flex items-center justify-between p-2 rounded-md bg-white dark:bg-slate-800 shadow-sm"
@@ -488,7 +488,7 @@ export default function AnalyticsDashboard() {
                       </CardHeader>
                       <CardContent className="p-6">
                         <ResponsiveContainer width="100%" height={300}>
-                          <LineChart data={data?.dailyData || []}>
+                          <LineChart data={data.dailyData}>
                             <CartesianGrid strokeDasharray="3 3" stroke="#ccc" opacity={0.3} />
                             <XAxis 
                               dataKey="date" 
@@ -557,8 +557,8 @@ export default function AnalyticsDashboard() {
                           <PieChart>
                             <Pie
                               data={[
-                                { name: 'Successful', value: data?.successfulItineraries || 0 },
-                                { name: 'Failed', value: data?.failedItineraries || 0 }
+                                { name: 'Successful', value: data.successfulItineraries },
+                                { name: 'Failed', value: data.failedItineraries }
                               ]}
                               cx="50%"
                               cy="50%"
@@ -608,7 +608,7 @@ export default function AnalyticsDashboard() {
                             </div>
                           </div>
                           <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">
-                            {data?.averageResponseTime ? `${data?.averageResponseTime.toFixed(0)}ms` : 'N/A'}
+                            {data.averageResponseTime ? `${data.averageResponseTime.toFixed(0)}ms` : 'N/A'}
                           </div>
                           <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Average API response time</p>
                         </div>
@@ -621,7 +621,7 @@ export default function AnalyticsDashboard() {
                             </div>
                           </div>
                           <div className="text-2xl font-bold text-green-600 dark:text-green-400">
-                            {data?.totalItineraries && data?.totalItineraries > 0 ? `${((data?.successfulItineraries || 0) / data.totalItineraries * 100).toFixed(1)}%` : '0%'}
+                            {data.totalItineraries > 0 ? `${((data.successfulItineraries / data.totalItineraries) * 100).toFixed(1)}%` : '0%'}
                           </div>
                           <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Itinerary generation success rate</p>
                         </div>
@@ -634,7 +634,7 @@ export default function AnalyticsDashboard() {
                             </div>
                           </div>
                           <div className="text-2xl font-bold text-purple-600 dark:text-purple-400">
-                            {data?.totalVisits && data?.totalVisits > 0 ? `${((data?.totalItineraries || 0) / data.totalVisits * 100).toFixed(1)}%` : '0%'}
+                            {data.totalVisits > 0 ? `${((data.totalItineraries / data.totalVisits) * 100).toFixed(1)}%` : '0%'}
                           </div>
                           <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Visits that generate itineraries</p>
                         </div>
@@ -661,7 +661,7 @@ export default function AnalyticsDashboard() {
                     <CardContent className="p-6">
                       <ResponsiveContainer width="100%" height={400}>
                         <BarChart 
-                          data={data?.topDestinations || []}
+                          data={data.topDestinations}
                           margin={{
                             top: 20,
                             right: 30,
@@ -697,7 +697,7 @@ export default function AnalyticsDashboard() {
                             name="Trips"
                             radius={[4, 4, 0, 0]}
                           >
-                            {(data?.topDestinations || []).map((entry, index) => (
+                            {data.topDestinations.map((entry, index) => (
                               <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                             ))}
                           </Bar>
@@ -726,7 +726,7 @@ export default function AnalyticsDashboard() {
                       <CardContent className="p-6">
                         <ResponsiveContainer width="100%" height={300}>
                           <LineChart 
-                            data={data?.dailyData || []}
+                            data={data.dailyData}
                             margin={{
                               top: 20,
                               right: 30,
@@ -802,21 +802,21 @@ export default function AnalyticsDashboard() {
                             <div className="flex items-center justify-between mb-4">
                               <h3 className="text-sm font-medium text-slate-500 dark:text-slate-400">Share Rate</h3>
                               <div className="text-purple-600 dark:text-purple-400 bg-purple-100 dark:bg-purple-900/30 px-2 py-1 rounded-full text-xs font-medium">
-                              {data?.totalItineraries && data?.totalItineraries > 0 ? `${((data?.totalShares || 0) / data.totalItineraries * 100).toFixed(1)}%` : '0%'}
+                              {data.totalItineraries > 0 ? `${((data.totalShares / data.totalItineraries) * 100).toFixed(1)}%` : '0%'}
                               </div>
                             </div>
                             <div className="w-full bg-slate-200 dark:bg-slate-700 rounded-full h-2.5">
                               <div 
                                 className="bg-purple-600 h-2.5 rounded-full" 
                                 style={{ 
-                                  width: data?.totalItineraries && data?.totalItineraries > 0 
-                                    ? `${Math.min(100, ((data?.totalShares || 0) / data.totalItineraries) * 100)}%` 
+                                  width: data.totalItineraries > 0 
+                                    ? `${Math.min(100, (data.totalShares / data.totalItineraries) * 100)}%` 
                                     : '0%' 
                                 }}
                               ></div>
                             </div>
                             <p className="text-xs text-slate-500 dark:text-slate-400 mt-2">
-                              {data?.totalShares || 0} shares from {data?.totalItineraries || 0} itineraries
+                              {data.totalShares} shares from {data.totalItineraries} itineraries
                             </p>
                           </div>
                           
@@ -824,21 +824,21 @@ export default function AnalyticsDashboard() {
                             <div className="flex items-center justify-between mb-4">
                               <h3 className="text-sm font-medium text-slate-500 dark:text-slate-400">Download Rate</h3>
                               <div className="text-amber-600 dark:text-amber-400 bg-amber-100 dark:bg-amber-900/30 px-2 py-1 rounded-full text-xs font-medium">
-                              {data?.totalItineraries && data?.totalItineraries > 0 ? `${((data?.totalDownloads || 0) / data.totalItineraries * 100).toFixed(1)}%` : '0%'}
+                              {data.totalItineraries > 0 ? `${((data.totalDownloads / data.totalItineraries) * 100).toFixed(1)}%` : '0%'}
                               </div>
                             </div>
                             <div className="w-full bg-slate-200 dark:bg-slate-700 rounded-full h-2.5">
                               <div 
                                 className="bg-amber-600 h-2.5 rounded-full" 
                                 style={{ 
-                                  width: data?.totalItineraries && data?.totalItineraries > 0 
-                                    ? `${Math.min(100, ((data?.totalDownloads || 0) / data.totalItineraries) * 100)}%` 
+                                  width: data.totalItineraries > 0 
+                                    ? `${Math.min(100, (data.totalDownloads / data.totalItineraries) * 100)}%` 
                                     : '0%' 
                                 }}
                               ></div>
-                            </div>
+                          </div>
                             <p className="text-xs text-slate-500 dark:text-slate-400 mt-2">
-                              {data?.totalDownloads || 0} downloads from {data?.totalItineraries || 0} itineraries
+                              {data.totalDownloads} downloads from {data.totalItineraries} itineraries
                             </p>
                           </div>
                         </div>

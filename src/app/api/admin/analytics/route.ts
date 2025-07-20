@@ -18,9 +18,9 @@ export async function GET(request: NextRequest) {
 
     // Get overall statistics
     const [
-      totalVisits,
+      totalPageViews,
       uniqueVisitors,
-      totalItineraries,
+      totalItineraryGenerations,
       successfulItineraries,
       failedItineraries,
       totalShares,
@@ -28,7 +28,7 @@ export async function GET(request: NextRequest) {
       averageResponseTime,
       topDestinations,
       dailyData,
-      registeredUsers
+      totalUsers
     ] = await Promise.all([
       // Total visits
       prisma.pageView.count({
@@ -138,7 +138,7 @@ export async function GET(request: NextRequest) {
             destination: 'desc',
           },
         },
-        take: 10,
+        take: 15,
       }),
       
       // Daily data for charts
@@ -148,21 +148,25 @@ export async function GET(request: NextRequest) {
       prisma.user.count()
     ]);
 
+    // Process top destinations to match expected format
+    const formattedTopDestinations = topDestinations.map(item => ({
+      destination: item.destination,
+      count: item._count.destination,
+    }));
+
+    // Return data in the format expected by the frontend component
     return NextResponse.json({
-      totalVisits,
+      totalVisits: totalPageViews,
       uniqueVisitors: uniqueVisitors.length,
-      totalItineraries,
+      totalItineraries: totalItineraryGenerations,
       successfulItineraries,
       failedItineraries,
       totalShares,
       totalDownloads,
       averageResponseTime: averageResponseTime._avg.responseTime || 0,
-      topDestinations: topDestinations.map(d => ({
-        destination: d.destination,
-        count: d._count,
-      })),
+      topDestinations: formattedTopDestinations,
       dailyData,
-      registeredUsers
+      registeredUsers: totalUsers
     });
   } catch (error) {
     console.error('Analytics API error:', error);

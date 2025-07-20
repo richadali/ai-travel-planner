@@ -21,7 +21,7 @@ export async function middleware(request: NextRequest) {
   if (pathname.startsWith('/api')) {
     return NextResponse.next();
   }
-  
+
   // Get the session token
   const token = await getToken({ 
     req: request,
