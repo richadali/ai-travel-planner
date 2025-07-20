@@ -256,52 +256,70 @@ export const ItineraryDisplay: React.FC<ItineraryDisplayProps> = ({
 
       // For authenticated users, track the download and save the trip
       if (session) {
-      let currentTripId = tripId;
+        let currentTripId = tripId;
 
         // If we don't have a tripId, save the trip first
         if (!currentTripId && !isSaved) {
-        try {
-          const saveResponse = await fetch('/api/trips', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-              destination: tripMetadata.destination,
-              duration: tripMetadata.duration,
-              peopleCount: tripMetadata.peopleCount,
-              budget: tripMetadata.budget,
-              currency: tripMetadata.currency || 'INR',
-              itinerary: itinerary,
-            }),
-          });
+          try {
+            const saveResponse = await fetch('/api/trips', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({
+                destination: tripMetadata.destination,
+                duration: tripMetadata.duration,
+                peopleCount: tripMetadata.peopleCount,
+                budget: tripMetadata.budget,
+                currency: tripMetadata.currency || 'INR',
+                itinerary: itinerary,
+              }),
+            });
 
             if (saveResponse.ok) {
               const saveData = await saveResponse.json();
-          currentTripId = saveData.trip.id;
+              currentTripId = saveData.trip.id;
               
               // Mark as saved since we just saved it
               setIsSaved(true);
-
-      // Track the download
-      fetch('/api/trips/download', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          tripId: currentTripId,
-          downloadType: 'pdf',
-        }),
-      }).catch(error => {
-        console.error('Failed to track download:', error);
-      });
             }
           } catch (error) {
             console.error('Error saving trip before download:', error);
             // Continue with PDF generation even if saving fails
           }
         }
+
+        // Track the download if we have a tripId (either existing or newly created)
+        if (currentTripId) {
+          console.log(`[Download] Tracking download for trip: ${currentTripId}`);
+          
+          try {
+            const trackResponse = await fetch('/api/trips/download', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({
+                tripId: currentTripId,
+                downloadType: 'pdf',
+                userId: session.user?.id
+              }),
+            });
+            
+            if (trackResponse.ok) {
+              console.log('[Download] Successfully tracked download');
+            } else {
+              const errorData = await trackResponse.text();
+              console.error(`[Download] Failed to track download: ${trackResponse.status}`, errorData);
+            }
+          } catch (error) {
+            console.error('[Download] Failed to track download:', error);
+          }
+        } else {
+          console.warn('[Download] No tripId available for tracking download');
+        }
+      } else {
+        console.log('[Download] User not authenticated, skipping download tracking');
       }
 
       // Prepare metadata for PDF generation

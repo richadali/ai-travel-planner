@@ -237,6 +237,8 @@ export class AnalyticsService {
     userAgent?: string | null;
   }) {
     try {
+      console.log(`[Analytics] Starting to track download for trip: ${tripId}, type: ${downloadType}`);
+      
       // Extract IP and user agent if request is provided and not explicitly provided
       if (request && (!ipAddress || !userAgent)) {
         if ('headers' in request) {
@@ -245,26 +247,54 @@ export class AnalyticsService {
                       headers.get('x-real-ip') || 
                       'unknown';
           userAgent = userAgent || headers.get('user-agent') || 'unknown';
+          console.log(`[Analytics] Extracted IP: ${ipAddress.substring(0, 3)}*** and User Agent: ${userAgent.substring(0, 10)}...`);
         }
       }
 
-      // Create the trip download record
-      await prisma.tripDownload.create({
-        data: {
-          tripId,
-          downloadType,
-          userId,
-          ipAddress,
-          userAgent,
-        },
+      // Log the data being saved
+      console.log(`[Analytics] Saving trip download:`, {
+        tripId,
+        downloadType,
+        hasUserId: userId ? true : false,
+        hasIpAddress: ipAddress ? true : false,
+        hasUserAgent: userAgent ? true : false,
       });
 
+      // Create the trip download record
+      try {
+        await prisma.tripDownload.create({
+          data: {
+            tripId,
+            downloadType,
+            userId,
+            ipAddress,
+            userAgent,
+          },
+        });
+        console.log(`[Analytics] Successfully saved trip download to database`);
+      } catch (dbError: any) {
+        console.error(`[Analytics] Database error while saving trip download:`, {
+          error: dbError.message,
+          code: dbError.code,
+          meta: dbError.meta,
+        });
+        throw dbError;
+      }
+
       // Update daily summary asynchronously
-      this.updateDailySummary().catch(console.error);
+      this.updateDailySummary().catch(summaryError => {
+        console.error('[Analytics] Failed to update daily summary:', summaryError);
+      });
 
       return true;
-    } catch (error) {
-      console.error('Failed to track trip download:', error);
+    } catch (error: any) {
+      console.error('[Analytics] Failed to track trip download:', {
+        error: error.message,
+        stack: error.stack,
+        tripId,
+        downloadType,
+      });
+      // Don't throw - analytics should never break the main application flow
       return false;
     }
   }

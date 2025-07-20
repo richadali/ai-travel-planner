@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { AnalyticsService } from "@/lib/analytics";
+import { getCurrentUserId } from "@/lib/auth";
 
 // Schema for download tracking request
 const DownloadTrackingSchema = z.object({
@@ -11,27 +12,52 @@ const DownloadTrackingSchema = z.object({
 
 export async function POST(request: NextRequest) {
   try {
+    console.log("[API] Download tracking request received");
+    
     // Parse and validate the request body
     const body = await request.json();
+    console.log("[API] Download tracking body:", {
+      tripId: body.tripId,
+      downloadType: body.downloadType,
+      hasUserId: body.userId ? true : false
+    });
+    
     const { tripId, downloadType, userId } = DownloadTrackingSchema.parse(body);
     
+    // Get current user ID if not provided
+    const currentUserId = userId || await getCurrentUserId();
+    
+    console.log("[API] Tracking download with user ID:", currentUserId || "anonymous");
+    
     // Track the download
-    await AnalyticsService.trackTripDownload({
+    const trackingResult = await AnalyticsService.trackTripDownload({
       tripId,
       downloadType,
-      userId,
+      userId: currentUserId,
       request,
     });
     
-    return NextResponse.json({ 
-      success: true, 
-      message: "Download tracked successfully" 
-    });
+    if (trackingResult) {
+      console.log("[API] Download tracking successful");
+      return NextResponse.json({ 
+        success: true, 
+        message: "Download tracked successfully" 
+      });
+    } else {
+      console.log("[API] Download tracking failed in service");
+      return NextResponse.json({ 
+        success: false, 
+        error: "Failed to track download in service" 
+      }, { 
+        status: 500 
+      });
+    }
   } catch (error: any) {
-    console.error("Error tracking download:", error);
+    console.error("[API] Error tracking download:", error);
     
     // Handle validation errors
     if (error.name === "ZodError") {
+      console.error("[API] Validation error:", error.errors);
       return NextResponse.json({ 
         success: false, 
         error: "Invalid request data", 
