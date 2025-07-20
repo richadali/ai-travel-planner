@@ -151,7 +151,7 @@ export async function GET(request: NextRequest) {
     // Process top destinations to match expected format
     const formattedTopDestinations = topDestinations.map(item => ({
       destination: item.destination,
-      count: item._count.destination,
+      count: typeof item._count === 'number' ? item._count : (item._count as any).destination || 0,
     }));
 
     // Return data in the format expected by the frontend component
