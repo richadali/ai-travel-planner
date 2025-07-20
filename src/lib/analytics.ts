@@ -32,6 +32,8 @@ export class AnalyticsService {
     request?: NextRequest | Request | null;
   }) {
     try {
+      console.log(`[Analytics] Starting to track itinerary generation for: ${destination}`);
+      
       // Extract IP and user agent if request is provided
       let ipAddress = null;
       let userAgent = null;
@@ -44,62 +46,66 @@ export class AnalyticsService {
                       headers.get('x-real-ip') || 
                       'unknown';
           userAgent = headers.get('user-agent') || 'unknown';
+          console.log(`[Analytics] Extracted IP: ${ipAddress.substring(0, 3)}*** and User Agent: ${userAgent.substring(0, 10)}...`);
         }
       }
 
-      console.log('Tracking itinerary generation:', {
+      // Log the data being saved
+      console.log(`[Analytics] Saving itinerary generation:`, {
         destination,
         duration,
         peopleCount,
         budget,
-        successful
+        currency,
+        successful,
+        hasErrorMessage: errorMessage ? true : false,
+        hasResponseTime: responseTime ? true : false,
+        hasUserId: userId ? true : false,
+        hasIpAddress: ipAddress ? true : false,
+        hasUserAgent: userAgent ? true : false,
       });
 
       // Create the analytics record
-      await prisma.itineraryGeneration.create({
-        data: {
-          userId,
-          destination,
-          duration,
-          peopleCount,
-          budget,
-          currency,
-          successful,
-          errorMessage,
-          responseTime,
-          ipAddress,
-          userAgent,
-        },
-      });
-
-      console.log('Successfully tracked itinerary generation');
-
-      // Update daily summary asynchronously
-      this.updateDailySummary().catch(summaryError => {
-        console.error('Failed to update daily summary:', summaryError);
-      });
-
-      return true;
-    } catch (error) {
-      console.error('Failed to track itinerary generation:', error);
-      
-      // Enhanced error logging for production debugging
-      if (error instanceof Error) {
-        console.error('Error details:', {
-          name: error.name,
-          message: error.message,
-          stack: error.stack,
+      try {
+        await prisma.itineraryGeneration.create({
           data: {
+            userId,
             destination,
             duration,
             peopleCount,
             budget,
             currency,
             successful,
-          }
+            errorMessage,
+            responseTime,
+            ipAddress,
+            userAgent,
+          },
         });
+        console.log(`[Analytics] Successfully saved itinerary generation to database`);
+      } catch (dbError: any) {
+        console.error(`[Analytics] Database error while saving itinerary generation:`, {
+          error: dbError.message,
+          code: dbError.code,
+          meta: dbError.meta,
+        });
+        throw dbError;
       }
-      
+
+      // Update daily summary asynchronously
+      this.updateDailySummary().catch(summaryError => {
+        console.error('[Analytics] Failed to update daily summary:', summaryError);
+      });
+
+      return true;
+    } catch (error: any) {
+      console.error('[Analytics] Failed to track itinerary generation:', {
+        error: error.message,
+        stack: error.stack,
+        destination,
+        duration,
+        peopleCount,
+      });
       // Don't throw - analytics should never break the main application flow
       return false;
     }
