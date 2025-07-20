@@ -6,8 +6,6 @@ import { ThemeProvider } from "@/components/theme-provider";
 import { AuthProvider } from "@/components/auth-provider";
 import Script from "next/script";
 import { AnalyticsTracker } from "@/components/analytics-tracker";
-import config from "@/lib/config";
-import { metadata as siteMetadata } from "./metadata";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -19,11 +17,45 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-// Get base URL from config
-const baseUrl = config.app.baseUrl || "https://aitravelplanner.richadali.dev";
-
-// Use the metadata from the metadata file
-export const metadata: Metadata = siteMetadata;
+export const metadata: Metadata = {
+  title: "AI Travel Planner | Personalized Trip Itineraries",
+  description: "Plan your perfect trip with AI assistance. Get personalized travel itineraries based on your destination, budget, and preferences.",
+  metadataBase: new URL("https://aitravelplanner.richadali.dev"),
+  openGraph: {
+    type: "website",
+    locale: "en_US",
+    url: "https://aitravelplanner.richadali.dev",
+    title: "AI Travel Planner | Personalized Trip Itineraries",
+    description: "Plan your perfect trip with AI assistance. Get personalized travel itineraries based on your destination, budget, and preferences.",
+    siteName: "AI Travel Planner",
+    images: [
+      {
+        url: "https://aitravelplanner.richadali.dev/og.png",
+        width: 1200,
+        height: 630,
+        alt: "AI Travel Planner",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "AI Travel Planner | Personalized Trip Itineraries",
+    description: "Plan your perfect trip with AI assistance. Get personalized travel itineraries based on your destination, budget, and preferences.",
+    images: ["https://aitravelplanner.richadali.dev/og.png"],
+  },
+  icons: {
+    icon: [
+      { url: "/favicon.ico", sizes: "any" },
+      { url: "/favicon-16x16.png", sizes: "16x16", type: "image/png" },
+      { url: "/favicon-32x32.png", sizes: "32x32", type: "image/png" },
+    ],
+    apple: "/apple-touch-icon.png",
+    shortcut: "/favicon.ico",
+  },
+  alternates: {
+    canonical: "https://aitravelplanner.richadali.dev",
+  },
+};
 
 export default function RootLayout({
   children,
@@ -46,14 +78,6 @@ export default function RootLayout({
             gtag('config', 'G-H1NFKBMBC0');
           `}
         </Script>
-        
-        {/* Explicit OG tags to ensure they're properly included */}
-        <meta property="og:image" content={`${baseUrl}/og.png`} />
-        <meta property="og:image:width" content="1200" />
-        <meta property="og:image:height" content="630" />
-        <meta property="og:image:alt" content="AI Travel Planner" />
-        <meta property="twitter:image" content={`${baseUrl}/og.png`} />
-        <meta property="twitter:card" content="summary_large_image" />
       </head>
       <body
         className={cn(
