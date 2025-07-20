@@ -1,30 +1,14 @@
 import { ImageResponse } from 'next/og';
 import { NextRequest } from 'next/server';
- 
+import fs from 'fs';
+import path from 'path';
+
 export const runtime = 'edge';
 
-// Set cache control headers for better social media platform handling
-export function GET(request: NextRequest) {
+// This route is specifically for the homepage OG image
+export async function GET(request: NextRequest) {
   try {
-    const { searchParams } = new URL(request.url);
-    
-    // Get title from query params or use default
-    const title = searchParams.get('title') || 'AI Travel Planner';
-    const destination = searchParams.get('destination') || 'Your Dream Destination';
-    
-    // Use custom OG image if no specific parameters are provided
-    if (!searchParams.has('title') && !searchParams.has('destination')) {
-      // Instead of redirecting, serve the static OG image with proper headers
-      return new Response(null, {
-        status: 302,
-        headers: {
-          'Location': '/og.png',
-          'Cache-Control': 'public, max-age=3600, must-revalidate',
-          'Content-Type': 'image/png',
-        },
-      });
-    }
-    
+    // Generate a dynamic OG image for the homepage
     return new ImageResponse(
       (
         <div
@@ -67,14 +51,14 @@ export function GET(request: NextRequest) {
           </div>
           <h1
             style={{
-              fontSize: '60px',
+              fontSize: '72px',
               fontWeight: 'bold',
               margin: '0',
               marginBottom: '20px',
               textShadow: '0 2px 10px rgba(0,0,0,0.3)',
             }}
           >
-            {title}
+            Plan Your Dream Trip
           </h1>
           <h2
             style={{
@@ -85,7 +69,7 @@ export function GET(request: NextRequest) {
               color: '#94a3b8',
             }}
           >
-            {destination}
+            Personalized AI Travel Itineraries
           </h2>
           <div
             style={{
@@ -115,6 +99,14 @@ export function GET(request: NextRequest) {
     );
   } catch (e) {
     console.error(e);
-    return new Response('Failed to generate OG image', { status: 500 });
+    // If there's an error, return a 302 redirect to the static OG image
+    return new Response(null, {
+      status: 302,
+      headers: {
+        'Location': '/og.png',
+        'Cache-Control': 'public, max-age=3600, must-revalidate',
+        'Content-Type': 'image/png',
+      },
+    });
   }
 } 
