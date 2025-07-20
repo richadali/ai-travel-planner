@@ -31,4 +31,6 @@ chmod +x /var/www/aitravelplanner.richadali.dev/node_modules/next/dist/bin/next
 echo "🔄 Restarting PM2 process with updated environment..."
 pm2 restart ai-travel-planner --update-env || { echo "❌ PM2 restart failed"; exit 1; }
 
+chmod +x /var/www/aitravelplanner.richadali.dev/deploy.sh
+
 echo "✅ Deployment completed successfully!"
