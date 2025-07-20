@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { ItineraryType } from "@/types";
 import Script from "next/script";
+import { User } from "lucide-react";
 
 // Lazy load the ItineraryDisplay component
 const ItineraryDisplay = React.lazy(() => import("@/components/itinerary-display").then(mod => ({ 
@@ -53,44 +54,52 @@ export default function SharedTripPage() {
           
           // Create structured data for SEO
           if (data.trip) {
-            const trip = data.trip;
-            const jsonLd = {
-              "@context": "https://schema.org",
-              "@type": "TravelAction",
-              "agent": {
-                "@type": "Person",
-                "name": trip.ownerName || "Traveler"
-              },
-              "location": {
-                "@type": "Place",
-                "name": trip.destination,
-                "address": trip.destination
-              },
-              "startTime": trip.createdAt,
-              "endTime": new Date(new Date(trip.createdAt).getTime() + (trip.duration * 24 * 60 * 60 * 1000)).toISOString(),
-              "instrument": "AI Travel Planner",
-              "target": {
-                "@type": "EntryPoint",
-                "urlTemplate": `https://aitravelplanner.richadali.dev/trips/share/${shareId}`,
-                "inLanguage": "en-US",
-                "actionPlatform": [
-                  "https://schema.org/DesktopWebPlatform",
-                  "https://schema.org/MobileWebPlatform"
-                ]
-              },
-              "result": {
-                "@type": "Trip",
-                "name": `${trip.duration}-day trip to ${trip.destination}`,
-                "description": `A ${trip.duration}-day travel itinerary for ${trip.destination} with a budget of ${trip.currency}${trip.budget} for ${trip.peopleCount} people.`,
-                "itinerary": Object.keys(trip.itinerary).map(day => ({
-                  "@type": "TouristAttraction",
-                  "name": `Day ${day} in ${trip.destination}`,
-                  "description": trip.itinerary[day].activities.map((activity: any) => activity.title).join(", ")
-                }))
-              }
-            };
-            
-            setStructuredData(JSON.stringify(jsonLd));
+            try {
+              const trip = data.trip;
+              const jsonLd = {
+                "@context": "https://schema.org",
+                "@type": "TravelAction",
+                "agent": {
+                  "@type": "Person",
+                  "name": trip.ownerName || "Traveler"
+                },
+                "location": {
+                  "@type": "Place",
+                  "name": trip.destination,
+                  "address": trip.destination
+                },
+                "startTime": trip.createdAt,
+                "endTime": new Date(new Date(trip.createdAt).getTime() + (trip.duration * 24 * 60 * 60 * 1000)).toISOString(),
+                "instrument": "AI Travel Planner",
+                "target": {
+                  "@type": "EntryPoint",
+                  "urlTemplate": `https://aitravelplanner.richadali.dev/trips/share/${shareId}`,
+                  "inLanguage": "en-US",
+                  "actionPlatform": [
+                    "https://schema.org/DesktopWebPlatform",
+                    "https://schema.org/MobileWebPlatform"
+                  ]
+                },
+                "result": {
+                  "@type": "Trip",
+                  "name": `${trip.duration}-day trip to ${trip.destination}`,
+                  "description": `A ${trip.duration}-day travel itinerary for ${trip.destination} with a budget of ${trip.currency}${trip.budget} for ${trip.peopleCount} people.`,
+                  "itinerary": trip.itinerary && trip.itinerary.days ? 
+                    trip.itinerary.days.map((day: any, index: number) => ({
+                      "@type": "TouristAttraction",
+                      "name": `Day ${index + 1} in ${trip.destination}`,
+                      "description": day.activities && Array.isArray(day.activities) ? 
+                        day.activities.map((activity: any) => activity.name || "Activity").join(", ") : 
+                        `Activities for day ${index + 1}`
+                    })) : []
+                }
+              };
+              
+              setStructuredData(JSON.stringify(jsonLd));
+            } catch (error) {
+              console.error("Error generating structured data:", error);
+              // Don't set error state here, as we still want to show the trip
+            }
           }
         } else {
           throw new Error(data.error || 'Failed to fetch shared trip');
@@ -146,9 +155,15 @@ export default function SharedTripPage() {
                 <h1 className="text-3xl font-bold">{trip.destination}</h1>
                 <p className="text-muted-foreground">
                   {trip.duration} days • {trip.peopleCount} people
-                  {trip.ownerName && ` • Shared by ${trip.ownerName}`}
                   {trip.createdAt && ` • Created on ${formatDate(trip.createdAt)}`}
                 </p>
+                
+                {trip.ownerName && (
+                  <div className="mt-2 inline-flex items-center bg-blue-50 dark:bg-blue-900/20 text-blue-800 dark:text-blue-200 px-3 py-1 rounded-full text-sm">
+                    <User className="h-4 w-4 mr-2 text-blue-600 dark:text-blue-400" />
+                    Shared by {trip.ownerName}
+                  </div>
+                )}
               </div>
               <div className="flex gap-2">
                 <Link href="/">

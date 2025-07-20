@@ -63,9 +63,88 @@ function DashboardContent() {
     };
 
     if (status === "authenticated") {
-    fetchTrips();
+      fetchTrips();
     }
   }, [status, session]);
+
+  // Handle pending actions from localStorage after login
+  useEffect(() => {
+    const processPendingAction = async () => {
+      if (status === "authenticated" && session?.user) {
+        try {
+          // Check if there's a pending action in localStorage
+          const pendingAction = localStorage.getItem('pendingAction');
+          const savedItinerary = localStorage.getItem('savedItinerary');
+          const savedTripMetadata = localStorage.getItem('savedTripMetadata');
+          
+          if (pendingAction && savedItinerary && savedTripMetadata) {
+            const itinerary = JSON.parse(savedItinerary);
+            const tripMetadata = JSON.parse(savedTripMetadata);
+            
+            // First save the trip
+            const saveResponse = await fetch('/api/trips', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({
+                destination: tripMetadata.destination,
+                duration: tripMetadata.duration,
+                peopleCount: tripMetadata.peopleCount,
+                budget: tripMetadata.budget,
+                currency: tripMetadata.currency || 'INR',
+                itinerary: itinerary,
+              }),
+            });
+            
+            if (!saveResponse.ok) {
+              throw new Error('Failed to save trip after login');
+            }
+            
+            const saveData = await saveResponse.json();
+            const tripId = saveData.trip.id;
+            
+            // If the pending action was "share", also create a share link
+            if (pendingAction === 'share') {
+              const shareResponse = await fetch('/api/trips/share', {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                  tripId: tripId,
+                  ownerName: session.user.name || 'Travel Planner User',
+                  expiryDays: 30,
+                }),
+              });
+              
+              if (!shareResponse.ok) {
+                throw new Error('Failed to create share link after login');
+              }
+              
+              const shareData = await shareResponse.json();
+              
+              // Navigate to the trip page with a success message
+              router.push(`/trips/${tripId}?action=shared&shareUrl=${encodeURIComponent(shareData.shareUrl)}`);
+            } else {
+              // Just navigate to the saved trip
+              router.push(`/trips/${tripId}?action=saved`);
+            }
+            
+            // Clear the localStorage items
+            localStorage.removeItem('pendingAction');
+            localStorage.removeItem('savedItinerary');
+            localStorage.removeItem('savedTripMetadata');
+          }
+        } catch (error) {
+          console.error('Error processing pending action:', error);
+          // We'll just continue to show the dashboard if there's an error
+        }
+      }
+    };
+    
+    processPendingAction();
+  }, [status, session, router]);
 
   // Handle delete trip
   const handleDeleteClick = (e: React.MouseEvent, tripId: string) => {

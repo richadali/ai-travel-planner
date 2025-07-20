@@ -1,120 +1,67 @@
 "use client";
 
-import { useEffect, useState, Suspense } from "react";
-import { useSearchParams } from "next/navigation";
-import { ItineraryDisplay } from "@/components/itinerary-display";
-import { Header } from "@/components/header";
-import { Footer } from "@/components/footer";
+import { useEffect } from "react";
+import { useSearchParams, useRouter } from "next/navigation";
+import { signIn } from "next-auth/react";
 import { LoadingSpinner } from "@/components/loading-spinner";
-import { ItineraryType } from "@/types";
 
 // Force dynamic rendering for this page
 export const dynamic = 'force-dynamic';
 
-// Content component that uses useSearchParams
-function TempSharedTripContent() {
+export default function TempSharedTripPage() {
   const searchParams = useSearchParams();
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [tripData, setTripData] = useState<{
-    destination: string;
-    duration: number;
-    peopleCount: number;
-    budget: number;
-    currency?: string;
-    itinerary: ItineraryType;
-  } | null>(null);
+  const router = useRouter();
 
   useEffect(() => {
-    const loadTripData = async () => {
+    const handleRedirect = async () => {
       try {
-        setLoading(true);
         const encodedData = searchParams.get("data");
         
         if (!encodedData) {
-          throw new Error("No trip data found");
+          // If no data provided, redirect to home
+          router.push("/");
+          return;
         }
         
-        // Decode the base64 data
-        const jsonString = atob(decodeURIComponent(encodedData));
-        const data = JSON.parse(jsonString);
-        
-        if (!data.itinerary || !data.destination) {
-          throw new Error("Invalid trip data");
+        try {
+          // Decode the base64 data and save to localStorage for after login
+          const jsonString = atob(decodeURIComponent(encodedData));
+          const data = JSON.parse(jsonString);
+          
+          if (!data.itinerary || !data.destination) {
+            throw new Error("Invalid trip data");
+          }
+          
+          // Save to localStorage for retrieval after login
+          localStorage.setItem('savedItinerary', jsonString);
+          localStorage.setItem('savedTripMetadata', JSON.stringify({
+            destination: data.destination,
+            duration: data.duration,
+            peopleCount: data.peopleCount,
+            budget: data.budget,
+            currency: data.currency || "INR"
+          }));
+          localStorage.setItem('pendingAction', 'share');
+          
+          // Redirect to login
+          signIn(undefined, { callbackUrl: "/dashboard" });
+        } catch (error) {
+          console.error("Error processing share data:", error);
+          router.push("/?error=invalid-share-data");
         }
-        
-        setTripData(data);
       } catch (error) {
-        console.error("Error loading shared trip:", error);
-        setError("Could not load the shared trip. The link may be invalid or expired.");
-      } finally {
-        setLoading(false);
+        console.error("Error in redirect:", error);
+        router.push("/");
       }
     };
     
-    loadTripData();
-  }, [searchParams]);
-
-  if (loading) {
-    return (
-      <main className="flex-grow flex items-center justify-center">
-        <LoadingSpinner />
-      </main>
-    );
-  }
-
-  if (error || !tripData) {
-    return (
-      <main className="flex-grow container mx-auto px-4 py-16 max-w-7xl">
-        <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-8 text-center max-w-2xl mx-auto">
-          <h2 className="text-2xl font-bold text-red-800 dark:text-red-300 mb-4">
-            Error Loading Shared Trip
-          </h2>
-          <p className="text-red-700 dark:text-red-200 mb-6">
-            {error || "Could not load the shared trip. The link may be invalid or expired."}
-          </p>
-        </div>
-      </main>
-    );
-  }
+    handleRedirect();
+  }, [searchParams, router]);
 
   return (
-    <main className="flex-grow container mx-auto px-4 py-8 max-w-7xl">
-      <div className="mb-8 text-center">
-        <h1 className="text-3xl font-bold">Shared Travel Itinerary</h1>
-        <p className="text-muted-foreground mt-2">
-          Someone has shared this travel plan with you
-        </p>
-      </div>
-      
-      <ItineraryDisplay 
-        itinerary={tripData.itinerary}
-        tripMetadata={{
-          destination: tripData.destination,
-          duration: tripData.duration,
-          peopleCount: tripData.peopleCount,
-          budget: tripData.budget,
-          currency: tripData.currency || "INR"
-        }}
-        isSharedView={true}
-      />
-    </main>
-  );
-}
-
-// Main component with Suspense boundary
-export default function TempSharedTripPage() {
-  return (
-    <div className="flex flex-col min-h-screen">
-      <Header />
-      <Suspense fallback={
-        <main className="flex-grow flex items-center justify-center">
-          <LoadingSpinner />
-        </main>
-      }>
-        <TempSharedTripContent />
-      </Suspense>
-      <Footer />
+    <div className="flex items-center justify-center min-h-screen">
+      <LoadingSpinner size="lg" />
+      <p className="ml-4 text-lg">Redirecting to login...</p>
     </div>
   );
 } 
