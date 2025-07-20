@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { generateTravelPlan } from "@/lib/gemini";
 import { getCurrentUserId } from "@/lib/auth";
+import { AnalyticsService } from "@/lib/analytics";
 
 const TripRequestSchema = z.object({
   destination: z.string().min(1, "Destination is required"),
@@ -37,22 +38,13 @@ export async function POST(request: NextRequest) {
       itinerary,
     };
     
-    // Track the itinerary generation via the API endpoint
+    // Track the itinerary generation directly via the AnalyticsService
     const responseTime = Date.now() - startTime;
     
-    // Extract IP and user agent
-    const ipAddress = request.headers.get('x-forwarded-for')?.split(',')[0].trim() || 
-                      request.headers.get('x-real-ip') || 
-                      'unknown';
-    const userAgent = request.headers.get('user-agent') || 'unknown';
-    
-    // Call the analytics API endpoint asynchronously
-    fetch(`${request.nextUrl.origin}/api/analytics/itinerary-generation`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
+    // Track analytics directly using the service instead of making an API call
+    try {
+      await AnalyticsService.trackItineraryGeneration({
+        userId,
         destination: validatedData.destination,
         duration: validatedData.duration,
         peopleCount: validatedData.peopleCount,
@@ -60,13 +52,12 @@ export async function POST(request: NextRequest) {
         currency: validatedData.currency,
         successful: true,
         responseTime,
-        userId,
-        ipAddress,
-        userAgent,
-      }),
-    }).catch(error => {
-      console.error("Failed to track itinerary generation:", error);
-    });
+        request
+      });
+    } catch (analyticsError) {
+      console.error("Failed to track itinerary generation:", analyticsError);
+      // Don't fail the main request if analytics fails
+    }
     
     // Return the generated itinerary
     return NextResponse.json(responseData);
@@ -75,24 +66,14 @@ export async function POST(request: NextRequest) {
     successful = false;
     errorMessage = error.message || "Unknown error";
     
-    // Extract IP and user agent for error tracking
-    const ipAddress = request.headers.get('x-forwarded-for')?.split(',')[0].trim() || 
-                      request.headers.get('x-real-ip') || 
-                      'unknown';
-    const userAgent = request.headers.get('user-agent') || 'unknown';
-    
-    // Track the error via the API endpoint
     const responseTime = Date.now() - startTime;
     
     // Handle specific error types
     if (error.name === "InvalidDestinationError") {
-      // Track the failed itinerary generation
-      fetch(`${request.nextUrl.origin}/api/analytics/itinerary-generation`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
+      // Track the failed itinerary generation directly
+      try {
+        await AnalyticsService.trackItineraryGeneration({
+          userId: await getCurrentUserId(),
           destination: "invalid-destination",
           duration: 0,
           peopleCount: 0,
@@ -100,13 +81,11 @@ export async function POST(request: NextRequest) {
           successful: false,
           errorMessage: error.message,
           responseTime,
-          userId: await getCurrentUserId(),
-          ipAddress,
-          userAgent,
-        }),
-      }).catch(trackError => {
-        console.error("Failed to track failed itinerary generation:", trackError);
-      });
+          request
+        });
+      } catch (analyticsError) {
+        console.error("Failed to track failed itinerary generation:", analyticsError);
+      }
       
       return NextResponse.json(
         { error: error.message || "Invalid destination provided" },
@@ -115,13 +94,10 @@ export async function POST(request: NextRequest) {
     }
     
     if (error.name === "ZodError") {
-      // Track validation error
-      fetch(`${request.nextUrl.origin}/api/analytics/itinerary-generation`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
+      // Track validation error directly
+      try {
+        await AnalyticsService.trackItineraryGeneration({
+          userId: await getCurrentUserId(),
           destination: "validation-error",
           duration: 0,
           peopleCount: 0,
@@ -129,13 +105,11 @@ export async function POST(request: NextRequest) {
           successful: false,
           errorMessage: "Validation error: " + JSON.stringify(error.errors),
           responseTime,
-          userId: await getCurrentUserId(),
-          ipAddress,
-          userAgent,
-        }),
-      }).catch(trackError => {
-        console.error("Failed to track validation error:", trackError);
-      });
+          request
+        });
+      } catch (analyticsError) {
+        console.error("Failed to track validation error:", analyticsError);
+      }
       
       return NextResponse.json(
         { error: "Invalid request data", details: error.errors },
@@ -143,13 +117,10 @@ export async function POST(request: NextRequest) {
       );
     }
     
-    // Track generic error
-    fetch(`${request.nextUrl.origin}/api/analytics/itinerary-generation`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
+    // Track generic error directly
+    try {
+      await AnalyticsService.trackItineraryGeneration({
+        userId: await getCurrentUserId(),
         destination: "error",
         duration: 0,
         peopleCount: 0,
@@ -157,13 +128,11 @@ export async function POST(request: NextRequest) {
         successful: false,
         errorMessage: error.message || "Unknown server error",
         responseTime,
-        userId: await getCurrentUserId(),
-        ipAddress,
-        userAgent,
-      }),
-    }).catch(trackError => {
-      console.error("Failed to track error:", trackError);
-    });
+        request
+      });
+    } catch (analyticsError) {
+      console.error("Failed to track error:", analyticsError);
+    }
     
     // Handle general errors
     return NextResponse.json(

@@ -47,6 +47,14 @@ export class AnalyticsService {
         }
       }
 
+      console.log('Tracking itinerary generation:', {
+        destination,
+        duration,
+        peopleCount,
+        budget,
+        successful
+      });
+
       // Create the analytics record
       await prisma.itineraryGeneration.create({
         data: {
@@ -64,12 +72,34 @@ export class AnalyticsService {
         },
       });
 
+      console.log('Successfully tracked itinerary generation');
+
       // Update daily summary asynchronously
-      this.updateDailySummary().catch(console.error);
+      this.updateDailySummary().catch(summaryError => {
+        console.error('Failed to update daily summary:', summaryError);
+      });
 
       return true;
     } catch (error) {
       console.error('Failed to track itinerary generation:', error);
+      
+      // Enhanced error logging for production debugging
+      if (error instanceof Error) {
+        console.error('Error details:', {
+          name: error.name,
+          message: error.message,
+          stack: error.stack,
+          data: {
+            destination,
+            duration,
+            peopleCount,
+            budget,
+            currency,
+            successful,
+          }
+        });
+      }
+      
       // Don't throw - analytics should never break the main application flow
       return false;
     }
