@@ -42,7 +42,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
         url: `https://aitravelplanner.richadali.dev/trips/${id}`,
         images: [
           {
-            url: `https://aitravelplanner.richadali.dev/api/og?title=${encodeURIComponent(trip.destination)}&destination=${encodeURIComponent(`${trip.duration}-day Itinerary`)}`,
+            url: `https://aitravelplanner.richadali.dev/api/og?title=${encodeURIComponent(trip.destination)}&destination=${encodeURIComponent(`${trip.duration}-day Itinerary`)}&v=${new Date().getTime()}`,
             width: 1200,
             height: 630,
             alt: `${trip.destination} Travel Itinerary`,
@@ -53,7 +53,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
         card: "summary_large_image",
         title,
         description,
-        images: [`https://aitravelplanner.richadali.dev/api/og?title=${encodeURIComponent(trip.destination)}&destination=${encodeURIComponent(`${trip.duration}-day Itinerary`)}`],
+        images: [`https://aitravelplanner.richadali.dev/api/og?title=${encodeURIComponent(trip.destination)}&destination=${encodeURIComponent(`${trip.duration}-day Itinerary`)}&v=${new Date().getTime()}`],
       },
     };
   } catch (error) {
@@ -62,10 +62,10 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       title: "Travel Itinerary | AI Travel Planner",
       description: "View your AI-generated travel itinerary.",
   openGraph: {
-        images: [{ url: "https://aitravelplanner.richadali.dev/og.png" }],
+        images: [{ url: "https://aitravelplanner.richadali.dev/og.jpg" }],
       },
       twitter: {
-        images: ["https://aitravelplanner.richadali.dev/og.png"],
+        images: ["https://aitravelplanner.richadali.dev/og.jpg"],
   },
 };
   }

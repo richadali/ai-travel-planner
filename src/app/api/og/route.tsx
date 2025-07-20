@@ -14,15 +14,18 @@ export async function GET(request: NextRequest) {
     // Use custom OG image if no specific parameters are provided
     if (!searchParams.has('title') && !searchParams.has('destination')) {
       // Redirect to the static OG image
-      return new Response(null, {
+      const redirectResponse = new Response(null, {
         status: 302,
         headers: {
-          Location: '/og.png',
+          Location: '/og.jpg',
+          'Cache-Control': 'public, max-age=3600, s-maxage=3600'
         },
       });
+      return redirectResponse;
     }
     
-    return new ImageResponse(
+    // Add cache control headers to prevent excessive caching
+    const response = new ImageResponse(
       (
         <div
           style={{
@@ -106,8 +109,15 @@ export async function GET(request: NextRequest) {
         height: 630,
       },
     );
+    
+    // Set cache control headers to prevent excessive caching
+    response.headers.set('Cache-Control', 'public, max-age=60, s-maxage=60, stale-while-revalidate=300');
+    
+    return response;
   } catch (e) {
     console.error(e);
-    return new Response('Failed to generate OG image', { status: 500 });
+    const errorResponse = new Response('Failed to generate OG image', { status: 500 });
+    errorResponse.headers.set('Cache-Control', 'no-store, max-age=0');
+    return errorResponse;
   }
 } 

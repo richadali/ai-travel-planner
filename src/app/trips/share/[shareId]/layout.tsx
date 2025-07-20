@@ -34,10 +34,10 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
         title: "Shared Trip Not Found | AI Travel Planner",
         description: "The requested shared travel itinerary could not be found.",
         openGraph: {
-          images: [{ url: `${config.app.baseUrl}/og.png` }],
+          images: [{ url: `${config.app.baseUrl}/og.jpg` }],
         },
         twitter: {
-          images: [`${config.app.baseUrl}/og.png`],
+          images: [`${config.app.baseUrl}/og.jpg`],
         },
       };
     }
@@ -49,7 +49,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
     // Construct the OG image URL with proper parameters
     const baseUrl = config.app.baseUrl.replace(/\/$/, ''); // Remove trailing slash if present
-    const ogImageUrl = `${baseUrl}/api/og/shared-trip?destination=${encodeURIComponent(trip.destination)}&duration=${encodeURIComponent(`${trip.duration}-day`)}&owner=${encodeURIComponent(ownerName)}`;
+    // Add a version parameter to force cache invalidation
+    const version = new Date().getTime();
+    const ogImageUrl = `${baseUrl}/api/og/shared-trip?destination=${encodeURIComponent(trip.destination)}&duration=${encodeURIComponent(`${trip.duration}-day`)}&owner=${encodeURIComponent(ownerName)}&v=${version}`;
 
     return {
       title,
@@ -81,10 +83,10 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       title: "Shared Travel Itinerary | AI Travel Planner",
       description: "View a shared AI-generated travel itinerary.",
       openGraph: {
-        images: [{ url: `${config.app.baseUrl}/og.png` }],
+        images: [{ url: `${config.app.baseUrl}/og.jpg` }],
       },
       twitter: {
-        images: [`${config.app.baseUrl}/og.png`],
+        images: [`${config.app.baseUrl}/og.jpg`],
       },
     };
   }

@@ -12,7 +12,8 @@ export async function GET(request: NextRequest) {
     const duration = searchParams.get('duration') || '7-day';
     const owner = searchParams.get('owner') || 'a traveler';
     
-    return new ImageResponse(
+    // Add cache control headers to prevent excessive caching
+    const response = new ImageResponse(
       (
         <div
           style={{
@@ -216,8 +217,15 @@ export async function GET(request: NextRequest) {
         height: 630,
       },
     );
+    
+    // Set cache control headers to prevent excessive caching
+    response.headers.set('Cache-Control', 'public, max-age=60, s-maxage=60, stale-while-revalidate=300');
+    
+    return response;
   } catch (e) {
     console.error(e);
-    return new Response('Failed to generate OG image', { status: 500 });
+    const errorResponse = new Response('Failed to generate OG image', { status: 500 });
+    errorResponse.headers.set('Cache-Control', 'no-store, max-age=0');
+    return errorResponse;
   }
 } 
