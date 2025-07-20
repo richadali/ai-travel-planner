@@ -191,11 +191,11 @@ export default function Home() {
                 Plan Your Dream Trip with <span className="bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-indigo-600">AI</span>
               </motion.h1>
               <motion.p 
-                className="text-xl md:text-2xl text-slate-300 max-w-[800px]"
+                className="text-l md:text-2xl text-slate-300 max-w-[800px]"
                 variants={fadeInUp}
               >
                 Enter your destination, budget, and preferences to get a personalized travel itinerary
-                powered by artificial intelligence.
+                powered by generative AI.
               </motion.p>
             </motion.div>
             <motion.div 
