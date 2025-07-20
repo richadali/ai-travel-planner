@@ -47,8 +47,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     const title = `${trip.destination} Travel Itinerary | Shared by ${ownerName} | AI Travel Planner`;
     const description = `${trip.duration}-day travel plan for ${trip.destination} with a budget of ${trip.currency}${trip.budget} for ${trip.peopleCount} people. Created with AI Travel Planner and shared by ${ownerName}.`;
 
-    // Use the simplified OG image generator with just the destination
-    const ogImageUrl = `${baseUrl}/api/og-simple?destination=${encodeURIComponent(trip.destination)}`;
+    // Use the OG image generator
+    const ogImageUrl = `${baseUrl}/api/og?destination=${encodeURIComponent(trip.destination)}&duration=${trip.duration}&sharedBy=${encodeURIComponent(ownerName)}`;
 
     return {
       title,
