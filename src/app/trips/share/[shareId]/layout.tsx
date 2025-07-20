@@ -10,7 +10,6 @@ interface Props {
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   try {
     const { shareId } = await params;
-    const baseUrl = config.app.baseUrl.replace(/\/$/, ''); // Remove trailing slash if present
     
     // Fetch shared trip data from database
     const trip = await prisma.trip.findUnique({
@@ -21,12 +20,12 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
         peopleCount: true,
         budget: true,
         currency: true,
-        ownerName: true,
         user: {
           select: {
             name: true,
           },
         },
+        ownerName: true,
       },
     });
 
@@ -35,20 +34,22 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
         title: "Shared Trip Not Found | AI Travel Planner",
         description: "The requested shared travel itinerary could not be found.",
         openGraph: {
-          images: [{ url: `${baseUrl}/og.png` }],
+          images: [{ url: `${config.app.baseUrl}/og.png` }],
         },
         twitter: {
-          images: [`${baseUrl}/og.png`],
+          images: [`${config.app.baseUrl}/og.png`],
         },
       };
     }
 
-    const ownerName = trip.ownerName || trip.user?.name || "a traveler";
+    // Use ownerName from the trip if available, otherwise use the user's name, or default to "a traveler"
+    const ownerName = trip.ownerName || (trip.user?.name || "a traveler");
     const title = `${trip.destination} Travel Itinerary | Shared by ${ownerName} | AI Travel Planner`;
     const description = `${trip.duration}-day travel plan for ${trip.destination} with a budget of ${trip.currency}${trip.budget} for ${trip.peopleCount} people. Created with AI Travel Planner and shared by ${ownerName}.`;
 
-    // Use the main OG image generator with all parameters
-    const ogImageUrl = `${baseUrl}/api/og?title=${encodeURIComponent(`${trip.duration}-day Itinerary`)}&destination=${encodeURIComponent(trip.destination)}&duration=${trip.duration}&budget=${trip.budget}&currency=${encodeURIComponent(trip.currency)}&sharedBy=${encodeURIComponent(ownerName)}`;
+    // Construct the OG image URL with proper parameters
+    const baseUrl = config.app.baseUrl.replace(/\/$/, ''); // Remove trailing slash if present
+    const ogImageUrl = `${baseUrl}/api/og/shared-trip?destination=${encodeURIComponent(trip.destination)}&duration=${encodeURIComponent(`${trip.duration}-day`)}&owner=${encodeURIComponent(ownerName)}`;
 
     return {
       title,
@@ -76,15 +77,14 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     };
   } catch (error) {
     console.error("Error generating metadata:", error);
-    const baseUrl = config.app.baseUrl.replace(/\/$/, '');
     return {
       title: "Shared Travel Itinerary | AI Travel Planner",
       description: "View a shared AI-generated travel itinerary.",
       openGraph: {
-        images: [{ url: `${baseUrl}/og.png` }],
+        images: [{ url: `${config.app.baseUrl}/og.png` }],
       },
       twitter: {
-        images: [`${baseUrl}/og.png`],
+        images: [`${config.app.baseUrl}/og.png`],
       },
     };
   }
