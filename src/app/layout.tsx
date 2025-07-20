@@ -30,7 +30,7 @@ export const metadata: Metadata = {
     siteName: "AI Travel Planner",
     images: [
       {
-        url: "https://aitravelplanner.richadali.dev/og.png",
+        url: "https://aitravelplanner.richadali.dev/og.jpg",
         width: 1200,
         height: 630,
         alt: "AI Travel Planner",
@@ -41,7 +41,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "AI Travel Planner | Personalized Trip Itineraries",
     description: "Plan your perfect trip with AI assistance. Get personalized travel itineraries based on your destination, budget, and preferences.",
-    images: ["https://aitravelplanner.richadali.dev/og.png"],
+    images: ["https://aitravelplanner.richadali.dev/og.jpg"],
   },
   icons: {
     icon: [
