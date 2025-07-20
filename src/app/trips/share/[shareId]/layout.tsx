@@ -47,14 +47,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     const title = `${trip.destination} Travel Itinerary | Shared by ${ownerName} | AI Travel Planner`;
     const description = `${trip.duration}-day travel plan for ${trip.destination} with a budget of ${trip.currency}${trip.budget} for ${trip.peopleCount} people. Created with AI Travel Planner and shared by ${ownerName}.`;
 
-    // Construct OG image URL with all available parameters
-    const ogImageUrl = new URL(`${baseUrl}/api/og`);
-    ogImageUrl.searchParams.set('title', `${trip.duration}-day Itinerary`);
-    ogImageUrl.searchParams.set('destination', trip.destination);
-    ogImageUrl.searchParams.set('duration', trip.duration.toString());
-    ogImageUrl.searchParams.set('budget', trip.budget.toString());
-    ogImageUrl.searchParams.set('currency', trip.currency);
-    ogImageUrl.searchParams.set('sharedBy', ownerName);
+    // Use the simplified OG image generator with just the destination
+    const ogImageUrl = `${baseUrl}/api/og-simple?destination=${encodeURIComponent(trip.destination)}`;
 
     return {
       title,
@@ -66,7 +60,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
         url: `${baseUrl}/trips/share/${shareId}`,
         images: [
           {
-            url: ogImageUrl.toString(),
+            url: ogImageUrl,
             width: 1200,
             height: 630,
             alt: `${trip.destination} Travel Itinerary`,
@@ -77,7 +71,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
         card: "summary_large_image",
         title,
         description,
-        images: [ogImageUrl.toString()],
+        images: [ogImageUrl],
       },
     };
   } catch (error) {
