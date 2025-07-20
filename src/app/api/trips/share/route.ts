@@ -3,6 +3,7 @@ import { z } from "zod";
 import { nanoid } from "nanoid";
 import { getTripById, updateTrip, getTripByShareId } from "@/lib/database";
 import { AnalyticsService } from "@/lib/analytics";
+import config from "@/lib/config";
 
 // Schema for share request
 const ShareRequestSchema = z.object({
@@ -52,8 +53,9 @@ export async function POST(request: NextRequest) {
       console.error("Failed to track trip share:", error);
     });
     
-    // Construct share URL
-    const shareUrl = `${request.nextUrl.origin}/trips/share/${shareId}`;
+    // Construct share URL using the configured base URL instead of request origin
+    const baseUrl = config.app.baseUrl.replace(/\/$/, ''); // Remove trailing slash if present
+    const shareUrl = `${baseUrl}/trips/share/${shareId}`;
     
     return NextResponse.json({ 
       success: true, 

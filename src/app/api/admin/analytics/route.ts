@@ -164,7 +164,7 @@ export async function GET(request: NextRequest) {
       totalShares,
       totalDownloads,
       averageResponseTime: averageResponseTime._avg.responseTime || 0,
-      topDestinations: formattedTopDestinations,
+        topDestinations: formattedTopDestinations,
       dailyData,
       registeredUsers: totalUsers
     });

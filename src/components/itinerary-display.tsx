@@ -198,26 +198,26 @@ export const ItineraryDisplay: React.FC<ItineraryDisplayProps> = ({
           throw new Error(`Failed to prepare share link: ${error.message}`);
         }
       }
-
+          
       // Create share link using the saved trip ID
-      const shareResponse = await fetch('/api/trips/share', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          tripId: currentTripId,
-          ownerName: session.user.name || 'Travel Planner User',
-          expiryDays: 30,
-        }),
-      });
+        const shareResponse = await fetch('/api/trips/share', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            tripId: currentTripId,
+              ownerName: session.user.name || 'Travel Planner User',
+            expiryDays: 30,
+          }),
+        });
 
-      if (!shareResponse.ok) {
-        throw new Error('Failed to create share link');
-      }
+          if (!shareResponse.ok) {
+            throw new Error('Failed to create share link');
+          }
 
-      const shareData = await shareResponse.json();
-      shareUrl = shareData.shareUrl;
+          const shareData = await shareResponse.json();
+          shareUrl = shareData.shareUrl;
 
       if (shareUrl) {
         // Use native share API if available, otherwise copy to clipboard
@@ -562,41 +562,41 @@ export const ItineraryDisplay: React.FC<ItineraryDisplayProps> = ({
                 </div>
 
                 {day?.meals && Array.isArray(day.meals) && day.meals.length > 0 && (
-                  <div>
-                    <h3 className="text-xl font-semibold mb-4 flex items-center">
-                      <Utensils className="mr-2 h-5 w-5 text-green-600 dark:text-green-400" />
-                      Meals
-                    </h3>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                      {day.meals.map((meal, index) => {
-                        let MealIcon = Utensils;
-                        if (meal.type === 'breakfast') MealIcon = Coffee;
-                        
-                        return (
-                          <div
-                            key={`meal-${day.day}-${index}`}
-                            className="bg-white dark:bg-slate-800 p-4 rounded-lg shadow-sm border border-slate-200 dark:border-slate-700"
-                          >
-                            <div className="flex justify-between items-center mb-2">
-                              <span className="font-medium capitalize flex items-center">
-                                <MealIcon className="mr-2 h-4 w-4 text-green-600 dark:text-green-400" />
+                <div>
+                  <h3 className="text-xl font-semibold mb-4 flex items-center">
+                    <Utensils className="mr-2 h-5 w-5 text-green-600 dark:text-green-400" />
+                    Meals
+                  </h3>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    {day.meals.map((meal, index) => {
+                      let MealIcon = Utensils;
+                      if (meal.type === 'breakfast') MealIcon = Coffee;
+                      
+                      return (
+                        <div
+                          key={`meal-${day.day}-${index}`}
+                          className="bg-white dark:bg-slate-800 p-4 rounded-lg shadow-sm border border-slate-200 dark:border-slate-700"
+                        >
+                          <div className="flex justify-between items-center mb-2">
+                            <span className="font-medium capitalize flex items-center">
+                              <MealIcon className="mr-2 h-4 w-4 text-green-600 dark:text-green-400" />
                                 {meal.type || 'Meal'}
-                              </span>
-                              <span className="text-sm bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300 px-2 py-0.5 rounded">
+                            </span>
+                            <span className="text-sm bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300 px-2 py-0.5 rounded">
                                 {formatCurrency(meal.cost || 0)}
-                              </span>
-                            </div>
-                            <p className="text-sm mb-1">{meal.suggestion}</p>
-                            {meal.location && (
-                              <p className="text-xs text-slate-500 dark:text-slate-400 flex items-center mt-2">
-                                <MapPin className="inline mr-1 h-3 w-3" /> {meal.location}
-                              </p>
-                            )}
+                            </span>
                           </div>
-                        );
-                      })}
-                    </div>
+                          <p className="text-sm mb-1">{meal.suggestion}</p>
+                          {meal.location && (
+                            <p className="text-xs text-slate-500 dark:text-slate-400 flex items-center mt-2">
+                              <MapPin className="inline mr-1 h-3 w-3" /> {meal.location}
+                            </p>
+                          )}
+                        </div>
+                      );
+                    })}
                   </div>
+                </div>
                 )}
               </div>
             </CardContent>
@@ -606,187 +606,187 @@ export const ItineraryDisplay: React.FC<ItineraryDisplayProps> = ({
 
       {/* Accommodation */}
       {itinerary?.accommodation && Array.isArray(itinerary.accommodation) && itinerary.accommodation.length > 0 && (
-        <div className="space-y-6">
-          <h3 className="text-2xl font-bold flex items-center border-b pb-2">
-            <Bed className="mr-2 h-6 w-6 text-indigo-600 dark:text-indigo-400" />
-            Accommodation Options
-          </h3>
-          
-          <div className="grid gap-6 md:grid-cols-2">
-            {itinerary.accommodation.map((accommodation, index) => (
-              <Card
-                key={`accommodation-${index}`}
-                className="border-slate-200 dark:border-slate-700 overflow-hidden shadow-md"
-              >
-                <CardHeader className="bg-slate-50 dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700">
-                  <div className="flex justify-between items-center pt-2">
-                    <CardTitle className="text-xl">{accommodation.name}</CardTitle>
-                    <span className="font-medium bg-indigo-100 dark:bg-indigo-900/30 text-indigo-800 dark:text-indigo-300 px-2 py-1 rounded text-sm">
+      <div className="space-y-6">
+        <h3 className="text-2xl font-bold flex items-center border-b pb-2">
+          <Bed className="mr-2 h-6 w-6 text-indigo-600 dark:text-indigo-400" />
+          Accommodation Options
+        </h3>
+        
+        <div className="grid gap-6 md:grid-cols-2">
+          {itinerary.accommodation.map((accommodation, index) => (
+            <Card
+              key={`accommodation-${index}`}
+              className="border-slate-200 dark:border-slate-700 overflow-hidden shadow-md"
+            >
+              <CardHeader className="bg-slate-50 dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700">
+                <div className="flex justify-between items-center pt-2">
+                  <CardTitle className="text-xl">{accommodation.name}</CardTitle>
+                  <span className="font-medium bg-indigo-100 dark:bg-indigo-900/30 text-indigo-800 dark:text-indigo-300 px-2 py-1 rounded text-sm">
                       {formatCurrency(accommodation.pricePerNight || 0)} / night
+                  </span>
+                </div>
+                <CardDescription className="flex items-center">
+                  <MapPin className="h-4 w-4 mr-1" />
+                    {accommodation.location || 'Location not specified'}
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="p-6 pt-0">
+                <p className="mb-4">{accommodation.description}</p>
+                
+                {accommodation.suitableFor && (
+                  <div className="mb-3">
+                    <span className="inline-block bg-indigo-100 dark:bg-indigo-900/30 text-indigo-800 dark:text-indigo-300 px-2 py-1 rounded-full text-xs font-medium">
+                      Suitable for: {accommodation.suitableFor}
                     </span>
                   </div>
-                  <CardDescription className="flex items-center">
-                    <MapPin className="h-4 w-4 mr-1" />
-                    {accommodation.location || 'Location not specified'}
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="p-6 pt-0">
-                  <p className="mb-4">{accommodation.description}</p>
-                  
-                  {accommodation.suitableFor && (
-                    <div className="mb-3">
-                      <span className="inline-block bg-indigo-100 dark:bg-indigo-900/30 text-indigo-800 dark:text-indigo-300 px-2 py-1 rounded-full text-xs font-medium">
-                        Suitable for: {accommodation.suitableFor}
-                      </span>
-                    </div>
-                  )}
-                  
+                )}
+                
                   {accommodation.amenities && Array.isArray(accommodation.amenities) && accommodation.amenities.length > 0 && (
-                    <div>
-                      <h4 className="text-sm font-medium mb-2">Amenities</h4>
-                      <div className="flex flex-wrap gap-2">
-                        {accommodation.amenities.map((amenity, i) => (
-                          <span
-                            key={`amenity-${index}-${i}`}
-                            className="text-xs bg-slate-100 dark:bg-slate-800 px-2 py-1 rounded-full border border-slate-200 dark:border-slate-700"
-                          >
-                            {amenity}
-                          </span>
-                        ))}
-                      </div>
+                  <div>
+                    <h4 className="text-sm font-medium mb-2">Amenities</h4>
+                    <div className="flex flex-wrap gap-2">
+                      {accommodation.amenities.map((amenity, i) => (
+                        <span
+                          key={`amenity-${index}-${i}`}
+                          className="text-xs bg-slate-100 dark:bg-slate-800 px-2 py-1 rounded-full border border-slate-200 dark:border-slate-700"
+                        >
+                          {amenity}
+                        </span>
+                      ))}
                     </div>
-                  )}
-                </CardContent>
-              </Card>
-            ))}
-          </div>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          ))}
         </div>
+      </div>
       )}
 
       {/* Transportation */}
       {itinerary?.transportation && Array.isArray(itinerary.transportation) && itinerary.transportation.length > 0 && (
-        <div className="space-y-6">
-          <h3 className="text-2xl font-bold flex items-center border-b pb-2">
-            <Bus className="mr-2 h-6 w-6 text-orange-600 dark:text-orange-400" />
-            Transportation
-          </h3>
-          
-          <Card className="border-slate-200 dark:border-slate-700 shadow-md">
-            <CardContent className="p-6">
-              <div className="space-y-6">
-                {itinerary.transportation.map((transport, index) => {
-                  // Choose icon based on transport type
-                  let TransportIcon = Bus;
+      <div className="space-y-6">
+        <h3 className="text-2xl font-bold flex items-center border-b pb-2">
+          <Bus className="mr-2 h-6 w-6 text-orange-600 dark:text-orange-400" />
+          Transportation
+        </h3>
+        
+        <Card className="border-slate-200 dark:border-slate-700 shadow-md">
+          <CardContent className="p-6">
+            <div className="space-y-6">
+              {itinerary.transportation.map((transport, index) => {
+                // Choose icon based on transport type
+                let TransportIcon = Bus;
                   if (transport.type && transport.type.toLowerCase().includes('plane')) TransportIcon = Plane;
-                  
-                  return (
-                    <div
-                      key={`transport-${index}`}
-                      className="flex justify-between items-start border-b border-slate-100 dark:border-slate-800 pb-6 last:border-0 last:pb-0"
-                    >
-                      <div className="flex flex-1 pr-4">
-                        <div className="bg-orange-100 dark:bg-orange-900/30 p-2 rounded-full mr-4 self-start flex-shrink-0">
-                          <TransportIcon className="h-5 w-5 text-orange-600 dark:text-orange-400" />
-                        </div>
-                        <div>
-                          <h3 className="font-medium text-lg">{transport.type || 'Transportation'}</h3>
-                          <p className="text-muted-foreground">{transport.description}</p>
-                          
-                          {transport.recommendedFor && (
-                            <span className="inline-block mt-2 bg-orange-100 dark:bg-orange-900/30 text-orange-800 dark:text-orange-300 px-2 py-1.5 rounded-full text-xs">
-                              Recommended for: {transport.recommendedFor}
-                            </span>
-                          )}
-                        </div>
+                
+                return (
+                  <div
+                    key={`transport-${index}`}
+                    className="flex justify-between items-start border-b border-slate-100 dark:border-slate-800 pb-6 last:border-0 last:pb-0"
+                  >
+                    <div className="flex flex-1 pr-4">
+                      <div className="bg-orange-100 dark:bg-orange-900/30 p-2 rounded-full mr-4 self-start flex-shrink-0">
+                        <TransportIcon className="h-5 w-5 text-orange-600 dark:text-orange-400" />
                       </div>
-                      <span className="font-medium bg-orange-100 dark:bg-orange-900/30 text-orange-800 dark:text-orange-300 px-2 py-1 rounded flex-shrink-0">
-                        {formatCurrency(transport.cost || 0)}
-                      </span>
+                      <div>
+                          <h3 className="font-medium text-lg">{transport.type || 'Transportation'}</h3>
+                        <p className="text-muted-foreground">{transport.description}</p>
+                        
+                        {transport.recommendedFor && (
+                          <span className="inline-block mt-2 bg-orange-100 dark:bg-orange-900/30 text-orange-800 dark:text-orange-300 px-2 py-1.5 rounded-full text-xs">
+                            Recommended for: {transport.recommendedFor}
+                          </span>
+                        )}
+                      </div>
                     </div>
-                  );
-                })}
-              </div>
-            </CardContent>
-          </Card>
-        </div>
+                    <span className="font-medium bg-orange-100 dark:bg-orange-900/30 text-orange-800 dark:text-orange-300 px-2 py-1 rounded flex-shrink-0">
+                        {formatCurrency(transport.cost || 0)}
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
+          </CardContent>
+        </Card>
+      </div>
       )}
 
       {/* Budget Breakdown */}
       {itinerary?.budgetBreakdown && (
-        <div className="space-y-6">
-          <h3 className="text-2xl font-bold flex items-center border-b pb-2">
-            <IndianRupee className="mr-2 h-6 w-6 text-green-600 dark:text-green-400" />
-            Budget Breakdown
-          </h3>
-          
-          <Card className="border-slate-200 dark:border-slate-700 shadow-md">
-            <CardContent className="p-6">
-              <div className="space-y-4">
-                <div className="flex justify-between items-center pb-3 border-b border-slate-100 dark:border-slate-800">
-                  <span className="flex items-center">
-                    <Bed className="h-5 w-5 mr-2 text-indigo-600 dark:text-indigo-400" />
-                    Accommodation
-                  </span>
+      <div className="space-y-6">
+        <h3 className="text-2xl font-bold flex items-center border-b pb-2">
+          <IndianRupee className="mr-2 h-6 w-6 text-green-600 dark:text-green-400" />
+          Budget Breakdown
+        </h3>
+        
+        <Card className="border-slate-200 dark:border-slate-700 shadow-md">
+          <CardContent className="p-6">
+            <div className="space-y-4">
+              <div className="flex justify-between items-center pb-3 border-b border-slate-100 dark:border-slate-800">
+                <span className="flex items-center">
+                  <Bed className="h-5 w-5 mr-2 text-indigo-600 dark:text-indigo-400" />
+                  Accommodation
+                </span>
                   <span className="font-medium">{formatCurrency(itinerary.budgetBreakdown.accommodation || 0)}</span>
-                </div>
-                <div className="flex justify-between items-center pb-3 border-b border-slate-100 dark:border-slate-800">
-                  <span className="flex items-center">
-                    <Utensils className="h-5 w-5 mr-2 text-green-600 dark:text-green-400" />
-                    Food
-                  </span>
-                  <span className="font-medium">{formatCurrency(itinerary.budgetBreakdown.food || 0)}</span>
-                </div>
-                <div className="flex justify-between items-center pb-3 border-b border-slate-100 dark:border-slate-800">
-                  <span className="flex items-center">
-                    <MapPin className="h-5 w-5 mr-2 text-blue-600 dark:text-blue-400" />
-                    Activities
-                  </span>
-                  <span className="font-medium">{formatCurrency(itinerary.budgetBreakdown.activities || 0)}</span>
-                </div>
-                <div className="flex justify-between items-center pb-3 border-b border-slate-100 dark:border-slate-800">
-                  <span className="flex items-center">
-                    <Bus className="h-5 w-5 mr-2 text-orange-600 dark:text-orange-400" />
-                    Transportation
-                  </span>
-                  <span className="font-medium">{formatCurrency(itinerary.budgetBreakdown.transportation || 0)}</span>
-                </div>
-                <div className="flex justify-between items-center pb-3 border-b border-slate-100 dark:border-slate-800">
-                  <span>Miscellaneous</span>
-                  <span className="font-medium">{formatCurrency(itinerary.budgetBreakdown.miscellaneous || 0)}</span>
-                </div>
-                <div className="flex justify-between items-center pt-2 font-bold text-lg">
-                  <span>Total</span>
-                  <span className="text-green-600 dark:text-green-400">{formatCurrency(itinerary.budgetBreakdown.total || 0)}</span>
-                </div>
               </div>
-            </CardContent>
-          </Card>
-        </div>
+              <div className="flex justify-between items-center pb-3 border-b border-slate-100 dark:border-slate-800">
+                <span className="flex items-center">
+                  <Utensils className="h-5 w-5 mr-2 text-green-600 dark:text-green-400" />
+                  Food
+                </span>
+                  <span className="font-medium">{formatCurrency(itinerary.budgetBreakdown.food || 0)}</span>
+              </div>
+              <div className="flex justify-between items-center pb-3 border-b border-slate-100 dark:border-slate-800">
+                <span className="flex items-center">
+                  <MapPin className="h-5 w-5 mr-2 text-blue-600 dark:text-blue-400" />
+                  Activities
+                </span>
+                  <span className="font-medium">{formatCurrency(itinerary.budgetBreakdown.activities || 0)}</span>
+              </div>
+              <div className="flex justify-between items-center pb-3 border-b border-slate-100 dark:border-slate-800">
+                <span className="flex items-center">
+                  <Bus className="h-5 w-5 mr-2 text-orange-600 dark:text-orange-400" />
+                  Transportation
+                </span>
+                  <span className="font-medium">{formatCurrency(itinerary.budgetBreakdown.transportation || 0)}</span>
+              </div>
+              <div className="flex justify-between items-center pb-3 border-b border-slate-100 dark:border-slate-800">
+                <span>Miscellaneous</span>
+                  <span className="font-medium">{formatCurrency(itinerary.budgetBreakdown.miscellaneous || 0)}</span>
+              </div>
+              <div className="flex justify-between items-center pt-2 font-bold text-lg">
+                <span>Total</span>
+                  <span className="text-green-600 dark:text-green-400">{formatCurrency(itinerary.budgetBreakdown.total || 0)}</span>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
       )}
 
       {/* Local Tips */}
       {itinerary?.tips && Array.isArray(itinerary.tips) && itinerary.tips.length > 0 && (
-        <div className="space-y-6">
-          <h3 className="text-2xl font-bold flex items-center border-b pb-2">
-            <LightbulbIcon className="mr-2 h-6 w-6 text-yellow-600 dark:text-yellow-400" />
-            Local Tips & Insights
-          </h3>
-          
-          <Card className="border-slate-200 dark:border-slate-700 shadow-md">
-            <CardContent className="p-6">
-              <ul className="space-y-4">
-                {itinerary.tips.map((tip, index) => (
-                  <li key={`tip-${index}`} className="flex items-start">
-                    <div className="bg-yellow-100 dark:bg-yellow-900/30 p-1 rounded-full mr-3 mt-0.5 flex-shrink-0">
-                      <LightbulbIcon className="h-4 w-4 text-yellow-600 dark:text-yellow-400" />
-                    </div>
-                    <p>{tip}</p>
-                  </li>
-                ))}
-              </ul>
-            </CardContent>
-          </Card>
-        </div>
+      <div className="space-y-6">
+        <h3 className="text-2xl font-bold flex items-center border-b pb-2">
+          <LightbulbIcon className="mr-2 h-6 w-6 text-yellow-600 dark:text-yellow-400" />
+          Local Tips & Insights
+        </h3>
+        
+        <Card className="border-slate-200 dark:border-slate-700 shadow-md">
+          <CardContent className="p-6">
+            <ul className="space-y-4">
+              {itinerary.tips.map((tip, index) => (
+                <li key={`tip-${index}`} className="flex items-start">
+                  <div className="bg-yellow-100 dark:bg-yellow-900/30 p-1 rounded-full mr-3 mt-0.5 flex-shrink-0">
+                    <LightbulbIcon className="h-4 w-4 text-yellow-600 dark:text-yellow-400" />
+                  </div>
+                  <p>{tip}</p>
+                </li>
+              ))}
+            </ul>
+          </CardContent>
+        </Card>
+      </div>
       )}
       
       <div className="flex justify-center gap-4 pt-8 border-t border-slate-200 dark:border-slate-800 no-print">

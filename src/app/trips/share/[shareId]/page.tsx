@@ -55,47 +55,47 @@ export default function SharedTripPage() {
           // Create structured data for SEO
           if (data.trip) {
             try {
-              const trip = data.trip;
-              const jsonLd = {
-                "@context": "https://schema.org",
-                "@type": "TravelAction",
-                "agent": {
-                  "@type": "Person",
-                  "name": trip.ownerName || "Traveler"
-                },
-                "location": {
-                  "@type": "Place",
-                  "name": trip.destination,
-                  "address": trip.destination
-                },
-                "startTime": trip.createdAt,
-                "endTime": new Date(new Date(trip.createdAt).getTime() + (trip.duration * 24 * 60 * 60 * 1000)).toISOString(),
-                "instrument": "AI Travel Planner",
-                "target": {
-                  "@type": "EntryPoint",
-                  "urlTemplate": `https://aitravelplanner.richadali.dev/trips/share/${shareId}`,
-                  "inLanguage": "en-US",
-                  "actionPlatform": [
-                    "https://schema.org/DesktopWebPlatform",
-                    "https://schema.org/MobileWebPlatform"
-                  ]
-                },
-                "result": {
-                  "@type": "Trip",
-                  "name": `${trip.duration}-day trip to ${trip.destination}`,
-                  "description": `A ${trip.duration}-day travel itinerary for ${trip.destination} with a budget of ${trip.currency}${trip.budget} for ${trip.peopleCount} people.`,
+            const trip = data.trip;
+            const jsonLd = {
+              "@context": "https://schema.org",
+              "@type": "TravelAction",
+              "agent": {
+                "@type": "Person",
+                "name": trip.ownerName || "Traveler"
+              },
+              "location": {
+                "@type": "Place",
+                "name": trip.destination,
+                "address": trip.destination
+              },
+              "startTime": trip.createdAt,
+              "endTime": new Date(new Date(trip.createdAt).getTime() + (trip.duration * 24 * 60 * 60 * 1000)).toISOString(),
+              "instrument": "AI Travel Planner",
+              "target": {
+                "@type": "EntryPoint",
+                "urlTemplate": `https://aitravelplanner.richadali.dev/trips/share/${shareId}`,
+                "inLanguage": "en-US",
+                "actionPlatform": [
+                  "https://schema.org/DesktopWebPlatform",
+                  "https://schema.org/MobileWebPlatform"
+                ]
+              },
+              "result": {
+                "@type": "Trip",
+                "name": `${trip.duration}-day trip to ${trip.destination}`,
+                "description": `A ${trip.duration}-day travel itinerary for ${trip.destination} with a budget of ${trip.currency}${trip.budget} for ${trip.peopleCount} people.`,
                   "itinerary": trip.itinerary && trip.itinerary.days ? 
                     trip.itinerary.days.map((day: any, index: number) => ({
-                      "@type": "TouristAttraction",
+                  "@type": "TouristAttraction",
                       "name": `Day ${index + 1} in ${trip.destination}`,
                       "description": day.activities && Array.isArray(day.activities) ? 
                         day.activities.map((activity: any) => activity.name || "Activity").join(", ") : 
                         `Activities for day ${index + 1}`
                     })) : []
-                }
-              };
-              
-              setStructuredData(JSON.stringify(jsonLd));
+              }
+            };
+            
+            setStructuredData(JSON.stringify(jsonLd));
             } catch (error) {
               console.error("Error generating structured data:", error);
               // Don't set error state here, as we still want to show the trip

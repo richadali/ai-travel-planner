@@ -63,7 +63,7 @@ function DashboardContent() {
     };
 
     if (status === "authenticated") {
-      fetchTrips();
+    fetchTrips();
     }
   }, [status, session]);
 

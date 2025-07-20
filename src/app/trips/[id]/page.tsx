@@ -98,47 +98,47 @@ function TripDetailContent() {
         // Create structured data for SEO
         if (result.trip) {
           try {
-            const trip = result.trip;
-            const jsonLd = {
-              "@context": "https://schema.org",
-              "@type": "TravelAction",
-              "agent": {
-                "@type": "Person",
-                "name": "Traveler"
-              },
-              "location": {
-                "@type": "Place",
-                "name": trip.destination,
-                "address": trip.destination
-              },
-              "startTime": trip.createdAt,
-              "endTime": new Date(new Date(trip.createdAt).getTime() + (trip.duration * 24 * 60 * 60 * 1000)).toISOString(),
-              "instrument": "AI Travel Planner",
-              "target": {
-                "@type": "EntryPoint",
-                "urlTemplate": `https://aitravelplanner.richadali.dev/trips/${trip.id}`,
-                "inLanguage": "en-US",
-                "actionPlatform": [
-                  "https://schema.org/DesktopWebPlatform",
-                  "https://schema.org/MobileWebPlatform"
-                ]
-              },
-              "result": {
-                "@type": "Trip",
-                "name": `${trip.duration}-day trip to ${trip.destination}`,
-                "description": `A ${trip.duration}-day travel itinerary for ${trip.destination} with a budget of ${trip.currency}${trip.budget} for ${trip.peopleCount} people.`,
+          const trip = result.trip;
+          const jsonLd = {
+            "@context": "https://schema.org",
+            "@type": "TravelAction",
+            "agent": {
+              "@type": "Person",
+              "name": "Traveler"
+            },
+            "location": {
+              "@type": "Place",
+              "name": trip.destination,
+              "address": trip.destination
+            },
+            "startTime": trip.createdAt,
+            "endTime": new Date(new Date(trip.createdAt).getTime() + (trip.duration * 24 * 60 * 60 * 1000)).toISOString(),
+            "instrument": "AI Travel Planner",
+            "target": {
+              "@type": "EntryPoint",
+              "urlTemplate": `https://aitravelplanner.richadali.dev/trips/${trip.id}`,
+              "inLanguage": "en-US",
+              "actionPlatform": [
+                "https://schema.org/DesktopWebPlatform",
+                "https://schema.org/MobileWebPlatform"
+              ]
+            },
+            "result": {
+              "@type": "Trip",
+              "name": `${trip.duration}-day trip to ${trip.destination}`,
+              "description": `A ${trip.duration}-day travel itinerary for ${trip.destination} with a budget of ${trip.currency}${trip.budget} for ${trip.peopleCount} people.`,
                 "itinerary": trip.itinerary && trip.itinerary.days ? 
                   trip.itinerary.days.map((day: any, index: number) => ({
-                    "@type": "TouristAttraction",
+                "@type": "TouristAttraction",
                     "name": `Day ${index + 1} in ${trip.destination}`,
                     "description": day.activities && Array.isArray(day.activities) ? 
                       day.activities.map((activity: any) => activity.name || "Activity").join(", ") : 
                       `Activities for day ${index + 1}`
                   })) : []
-              }
-            };
-            
-            setStructuredData(JSON.stringify(jsonLd));
+            }
+          };
+          
+          setStructuredData(JSON.stringify(jsonLd));
           } catch (error) {
             console.error("Error generating structured data:", error);
             // Don't set error state here, as we still want to show the trip
@@ -219,56 +219,56 @@ function TripDetailContent() {
         </div>
       )}
       
-      {isLoading ? (
-        <div className="flex justify-center py-12">
-          <LoadingSpinner size="lg" />
-        </div>
-      ) : error ? (
-        <div className="space-y-4">
-          <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4">
-            <p className="text-red-800 dark:text-red-200">{error}</p>
+        {isLoading ? (
+          <div className="flex justify-center py-12">
+            <LoadingSpinner size="lg" />
           </div>
-          <Link href="/dashboard">
-            <Button variant="outline">Back to Dashboard</Button>
-          </Link>
-        </div>
-      ) : trip ? (
-        <div className="space-y-8">
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-            <div>
-              <h1 className="text-3xl font-bold">{trip.destination}</h1>
-              <p className="text-muted-foreground">
-                {trip.duration} days • {trip.peopleCount} people • Created on {formatDate(trip.createdAt)}
-              </p>
+        ) : error ? (
+          <div className="space-y-4">
+            <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4">
+              <p className="text-red-800 dark:text-red-200">{error}</p>
             </div>
             <Link href="/dashboard">
               <Button variant="outline">Back to Dashboard</Button>
             </Link>
           </div>
+        ) : trip ? (
+          <div className="space-y-8">
+            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+              <div>
+                <h1 className="text-3xl font-bold">{trip.destination}</h1>
+                <p className="text-muted-foreground">
+                  {trip.duration} days • {trip.peopleCount} people • Created on {formatDate(trip.createdAt)}
+                </p>
+              </div>
+              <Link href="/dashboard">
+                <Button variant="outline">Back to Dashboard</Button>
+              </Link>
+            </div>
 
-          <Suspense fallback={<div className="flex justify-center py-12"><LoadingSpinner size="lg" /></div>}>
-            <ItineraryDisplay 
-              itinerary={trip.itinerary}
-              tripMetadata={{
-                destination: trip.destination,
-                duration: trip.duration,
-                peopleCount: trip.peopleCount,
-                budget: trip.budget,
-                currency: trip.currency,
-              }}
+            <Suspense fallback={<div className="flex justify-center py-12"><LoadingSpinner size="lg" /></div>}>
+              <ItineraryDisplay 
+                itinerary={trip.itinerary}
+                tripMetadata={{
+                  destination: trip.destination,
+                  duration: trip.duration,
+                  peopleCount: trip.peopleCount,
+                  budget: trip.budget,
+                  currency: trip.currency,
+                }}
               tripId={tripId}
-            />
-          </Suspense>
-        </div>
-      ) : (
-        <div className="text-center py-12">
-          <p className="text-xl mb-4">Trip not found</p>
-          <Link href="/dashboard">
-            <Button>Back to Dashboard</Button>
-          </Link>
-        </div>
-      )}
-    </main>
+              />
+            </Suspense>
+          </div>
+        ) : (
+          <div className="text-center py-12">
+            <p className="text-xl mb-4">Trip not found</p>
+            <Link href="/dashboard">
+              <Button>Back to Dashboard</Button>
+            </Link>
+          </div>
+        )}
+      </main>
   );
 }
 

@@ -26,6 +26,7 @@ export const config = {
     name: process.env.APP_NAME || "AI Travel Planner",
     defaultCurrency: process.env.DEFAULT_CURRENCY || "INR",
     shareExpiry: parseInt(process.env.SHARE_EXPIRY_DAYS || "7", 10),
+    baseUrl: process.env.NEXT_PUBLIC_BASE_URL || process.env.NEXTAUTH_URL || "https://aitravelplanner.richadali.dev",
   },
   
   // Feature flags
