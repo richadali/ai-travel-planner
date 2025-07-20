@@ -5,13 +5,16 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = 'https://aitravelplanner.richadali.dev';
 
   // Get all public shared trips
-  const sharedTrips = await prisma.tripShare.findMany({
+  const sharedTrips = await prisma.trip.findMany({
     select: {
       shareId: true,
-      createdAt: true,
+      updatedAt: true,
     },
     where: {
-      expiresAt: {
+      shareId: {
+        not: null, // Only include trips with shareId
+      },
+      shareExpiry: {
         gt: new Date(), // Only include non-expired shares
       },
     },
@@ -31,7 +34,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   // Shared trip URLs
   const sharedTripUrls: MetadataRoute.Sitemap = sharedTrips.map((trip) => ({
     url: `${baseUrl}/trips/share/${trip.shareId}`,
-    lastModified: trip.createdAt,
+    lastModified: trip.updatedAt,
     changeFrequency: 'monthly',
     priority: 0.7,
   }));
