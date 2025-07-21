@@ -326,7 +326,7 @@ export default function UsersPage() {
                             </Badge>
                           </TableCell>
                           <TableCell className="text-center">
-                            <Badge variant={user.stats.savedTrips > 0 ? "primary" : "outline"} className="font-medium">
+                            <Badge variant={user.stats.savedTrips > 0 ? "default" : "outline"} className="font-medium">
                               {user.stats.savedTrips}
                             </Badge>
                           </TableCell>
