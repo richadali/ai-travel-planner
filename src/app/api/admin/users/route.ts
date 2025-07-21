@@ -62,17 +62,29 @@ export async function GET(request: NextRequest) {
     
     // For each user, fetch additional trip statistics
     const usersWithStats = await Promise.all(users.map(async (user) => {
+      // Get all trip IDs for the user to count shares and downloads of their content
+      const userTripIds = await prisma.trip.findMany({
+        where: { userId: user.id },
+        select: { id: true }
+      }).then(trips => trips.map(t => t.id));
+
       const generatedTrips = await prisma.itineraryGeneration.count({
         where: { userId: user.id }
       });
       
-      const sharedTrips = await prisma.tripShare.count({
-        where: { userId: user.id }
-      });
+      // Count how many times this user's trips have been shared
+      const sharedTrips = userTripIds.length > 0 
+        ? await prisma.tripShare.count({
+            where: { tripId: { in: userTripIds } }
+          }) 
+        : 0;
       
-      const downloadedTrips = await prisma.tripDownload.count({
-        where: { userId: user.id }
-      });
+      // Count how many times this user's trips have been downloaded
+      const downloadedTrips = userTripIds.length > 0 
+        ? await prisma.tripDownload.count({
+            where: { tripId: { in: userTripIds } }
+          }) 
+        : 0;
       
       return {
         ...user,
