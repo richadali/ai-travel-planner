@@ -4,7 +4,7 @@ import { isAdmin } from "@/lib/auth";
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { userId: string } }
+  context: { params: { userId: string } }
 ) {
   try {
     // Check if the user is an admin
@@ -17,7 +17,7 @@ export async function GET(
       );
     }
     
-    const { userId } = params;
+    const { userId } = context.params;
     
     // First, check if the user exists
     const user = await prisma.user.findUnique({
