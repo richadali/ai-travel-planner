@@ -71,22 +71,22 @@ export async function POST(request: NextRequest) {
       console.log("[Analytics] Attempting to track via API:", analyticsUrl);
       
       fetch(analyticsUrl, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          destination: validatedData.destination,
-          duration: validatedData.duration,
-          peopleCount: validatedData.peopleCount,
-          budget: validatedData.budget,
-          currency: validatedData.currency,
-          successful: true,
-          responseTime,
-          userId,
-          ipAddress,
-          userAgent,
-        }),
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        destination: validatedData.destination,
+        duration: validatedData.duration,
+        peopleCount: validatedData.peopleCount,
+        budget: validatedData.budget,
+        currency: validatedData.currency,
+        successful: true,
+        responseTime,
+        userId,
+        ipAddress,
+        userAgent,
+      }),
       })
       .then(response => {
         if (!response.ok) {
@@ -101,7 +101,7 @@ export async function POST(request: NextRequest) {
       })
       .catch(error => {
         console.error("[Analytics] Failed to track via API:", error);
-      });
+    });
     }
     
     // Return the generated itinerary

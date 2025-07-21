@@ -67,21 +67,21 @@ export class AnalyticsService {
 
       // Create the analytics record
       try {
-        await prisma.itineraryGeneration.create({
-          data: {
-            userId,
-            destination,
-            duration,
-            peopleCount,
-            budget,
-            currency,
-            successful,
-            errorMessage,
-            responseTime,
-            ipAddress,
-            userAgent,
-          },
-        });
+      await prisma.itineraryGeneration.create({
+        data: {
+          userId,
+          destination,
+          duration,
+          peopleCount,
+          budget,
+          currency,
+          successful,
+          errorMessage,
+          responseTime,
+          ipAddress,
+          userAgent,
+        },
+      });
         console.log(`[Analytics] Successfully saved itinerary generation to database`);
       } catch (dbError: any) {
         console.error(`[Analytics] Database error while saving itinerary generation:`, {
@@ -228,16 +228,18 @@ export class AnalyticsService {
     request = null,
     ipAddress = null,
     userAgent = null,
+    isAnonymous = false,
   }: {
     tripId: string;
     downloadType?: string;
-    userId?: string;
+    userId?: string | null;
     request?: NextRequest | Request | null;
     ipAddress?: string | null;
     userAgent?: string | null;
+    isAnonymous?: boolean;
   }) {
     try {
-      console.log(`[Analytics] Starting to track download for trip: ${tripId}, type: ${downloadType}`);
+      console.log(`[Analytics] Starting to track download for trip: ${tripId}, type: ${downloadType}, anonymous: ${isAnonymous}`);
       
       // Extract IP and user agent if request is provided and not explicitly provided
       if (request && (!ipAddress || !userAgent)) {
@@ -256,21 +258,22 @@ export class AnalyticsService {
         tripId,
         downloadType,
         hasUserId: userId ? true : false,
+        isAnonymous,
         hasIpAddress: ipAddress ? true : false,
         hasUserAgent: userAgent ? true : false,
       });
 
       // Create the trip download record
       try {
-        await prisma.tripDownload.create({
-          data: {
-            tripId,
-            downloadType,
-            userId,
-            ipAddress,
-            userAgent,
-          },
-        });
+      await prisma.tripDownload.create({
+        data: {
+          tripId,
+          downloadType,
+          userId,
+          ipAddress,
+          userAgent,
+        },
+      });
         console.log(`[Analytics] Successfully saved trip download to database`);
       } catch (dbError: any) {
         console.error(`[Analytics] Database error while saving trip download:`, {
@@ -293,6 +296,7 @@ export class AnalyticsService {
         stack: error.stack,
         tripId,
         downloadType,
+        isAnonymous,
       });
       // Don't throw - analytics should never break the main application flow
       return false;

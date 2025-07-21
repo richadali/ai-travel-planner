@@ -8,6 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, LineChart, Line, PieChart, Pie, Cell } from "recharts";
 import { format } from "date-fns";
 import { Button } from "@/components/ui/button";
+import Link from "next/link";
 import { Trash2Icon, RefreshCwIcon, Users, MapPin, TrendingUp, Activity, Share2, Download, RotateCcw } from "lucide-react";
 
 interface AnalyticsData {
@@ -277,7 +278,10 @@ export default function AnalyticsDashboard() {
                   </CardHeader>
                   <CardContent className="p-4 pt-0">
                     <div className="text-3xl font-bold text-slate-800 dark:text-slate-200">{data?.registeredUsers?.toLocaleString() || "0"}</div>
-                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Users with Google accounts</p>
+                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 flex justify-between">
+                      <span>Users with Google accounts</span>
+                      <Link href="/admin/users" className="text-indigo-600 dark:text-indigo-400 hover:underline">View all</Link>
+                    </p>
                   </CardContent>
                 </Card>
                 

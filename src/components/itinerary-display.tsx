@@ -253,32 +253,31 @@ export const ItineraryDisplay: React.FC<ItineraryDisplayProps> = ({
     try {
       setIsGeneratingPDF(true);
       setErrorMessage(null);
+      let currentTripId = tripId;
 
-      // For authenticated users, track the download and save the trip
+      // For authenticated users, save the trip if needed
       if (session) {
-        let currentTripId = tripId;
-
         // If we don't have a tripId, save the trip first
         if (!currentTripId && !isSaved) {
-          try {
-            const saveResponse = await fetch('/api/trips', {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-              },
-              body: JSON.stringify({
-                destination: tripMetadata.destination,
-                duration: tripMetadata.duration,
-                peopleCount: tripMetadata.peopleCount,
-                budget: tripMetadata.budget,
-                currency: tripMetadata.currency || 'INR',
-                itinerary: itinerary,
-              }),
-            });
+        try {
+          const saveResponse = await fetch('/api/trips', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              destination: tripMetadata.destination,
+              duration: tripMetadata.duration,
+              peopleCount: tripMetadata.peopleCount,
+              budget: tripMetadata.budget,
+              currency: tripMetadata.currency || 'INR',
+              itinerary: itinerary,
+            }),
+          });
 
             if (saveResponse.ok) {
               const saveData = await saveResponse.json();
-              currentTripId = saveData.trip.id;
+          currentTripId = saveData.trip.id;
               
               // Mark as saved since we just saved it
               setIsSaved(true);
@@ -288,38 +287,88 @@ export const ItineraryDisplay: React.FC<ItineraryDisplayProps> = ({
             // Continue with PDF generation even if saving fails
           }
         }
+      }
 
-        // Track the download if we have a tripId (either existing or newly created)
-        if (currentTripId) {
-          console.log(`[Download] Tracking download for trip: ${currentTripId}`);
+      // Track the download if we have a tripId
+      if (currentTripId) {
+        console.log(`[Download] Tracking download for trip: ${currentTripId}`);
+        
+        try {
+          const trackResponse = await fetch('/api/trips/download', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          tripId: currentTripId,
+          downloadType: 'pdf',
+              userId: session?.user?.id || undefined
+        }),
+          });
           
-          try {
-            const trackResponse = await fetch('/api/trips/download', {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-              },
-              body: JSON.stringify({
-                tripId: currentTripId,
-                downloadType: 'pdf',
-                userId: session.user?.id
-              }),
-            });
-            
-            if (trackResponse.ok) {
-              console.log('[Download] Successfully tracked download');
-            } else {
-              const errorData = await trackResponse.text();
-              console.error(`[Download] Failed to track download: ${trackResponse.status}`, errorData);
+          if (trackResponse.ok) {
+            console.log('[Download] Successfully tracked download');
+          } else {
+            const errorData = await trackResponse.text();
+            console.error(`[Download] Failed to track download: ${trackResponse.status}`, errorData);
             }
           } catch (error) {
-            console.error('[Download] Failed to track download:', error);
-          }
-        } else {
-          console.warn('[Download] No tripId available for tracking download');
+          console.error('[Download] Failed to track download:', error);
         }
-      } else {
-        console.log('[Download] User not authenticated, skipping download tracking');
+      } 
+      // For anonymous users or when no tripId is available, create a temporary trip for tracking
+      else if (!currentTripId && tripMetadata) {
+        try {
+          console.log('[Download] Creating temporary trip for anonymous download tracking');
+          
+          // Create a temporary trip just for tracking purposes
+          const tempTripResponse = await fetch('/api/trips/temp', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              destination: tripMetadata.destination,
+              duration: tripMetadata.duration,
+              peopleCount: tripMetadata.peopleCount,
+              budget: tripMetadata.budget,
+              currency: tripMetadata.currency || 'INR',
+              // We don't need to send the full itinerary for tracking
+              isAnonymous: true
+            }),
+          });
+          
+          if (tempTripResponse.ok) {
+            const tempTripData = await tempTripResponse.json();
+            
+            if (tempTripData.tripId) {
+              // Track the download using the temporary trip ID
+              const trackResponse = await fetch('/api/trips/download', {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                  tripId: tempTripData.tripId,
+                  downloadType: 'pdf',
+                  isAnonymous: true
+                }),
+              });
+              
+              if (trackResponse.ok) {
+                console.log('[Download] Successfully tracked anonymous download');
+              } else {
+                const errorData = await trackResponse.text();
+                console.error(`[Download] Failed to track anonymous download: ${trackResponse.status}`, errorData);
+              }
+            }
+          } else {
+            console.error('[Download] Failed to create temporary trip for tracking');
+          }
+        } catch (error) {
+          console.error('[Download] Error tracking anonymous download:', error);
+          // Continue with PDF generation even if tracking fails
+        }
       }
 
       // Prepare metadata for PDF generation

@@ -8,6 +8,7 @@ const DownloadTrackingSchema = z.object({
   tripId: z.string().min(1, "Trip ID is required"),
   downloadType: z.string().default("pdf"),
   userId: z.string().optional(),
+  isAnonymous: z.boolean().optional(),
 });
 
 export async function POST(request: NextRequest) {
@@ -19,13 +20,14 @@ export async function POST(request: NextRequest) {
     console.log("[API] Download tracking body:", {
       tripId: body.tripId,
       downloadType: body.downloadType,
-      hasUserId: body.userId ? true : false
+      hasUserId: body.userId ? true : false,
+      isAnonymous: body.isAnonymous || false
     });
     
-    const { tripId, downloadType, userId } = DownloadTrackingSchema.parse(body);
+    const { tripId, downloadType, userId, isAnonymous } = DownloadTrackingSchema.parse(body);
     
-    // Get current user ID if not provided
-    const currentUserId = userId || await getCurrentUserId();
+    // Get current user ID if not provided and not anonymous
+    const currentUserId = isAnonymous ? null : (userId || await getCurrentUserId());
     
     console.log("[API] Tracking download with user ID:", currentUserId || "anonymous");
     
@@ -35,6 +37,7 @@ export async function POST(request: NextRequest) {
       downloadType,
       userId: currentUserId,
       request,
+      isAnonymous: isAnonymous || false
     });
     
     if (trackingResult) {
