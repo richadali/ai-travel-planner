@@ -45,10 +45,10 @@ export function Header({ className }: HeaderProps) {
             </div>
             )}
             <div className="flex flex-col">
-              <span className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-indigo-600">
+              <span className="text-lg md:text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-indigo-600">
                 AI Travel Planner
               </span>
-              <span className="text-xs text-slate-500 dark:text-slate-400">
+              <span className="text-[11px] sm:text-xs text-slate-500 dark:text-slate-400">
                 Developed by Richad Ali
               </span>
             </div>

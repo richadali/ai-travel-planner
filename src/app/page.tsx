@@ -176,7 +176,7 @@ export default function Home() {
       
       <Header />
       <main className="flex-1">
-        <section className="py-16 md:py-24 bg-gradient-to-b from-slate-900 to-slate-800 text-white overflow-hidden">
+        <section className="py-16 md:py-24 bg-slate-50 text-slate-900 dark:bg-gradient-to-b dark:from-slate-900 dark:to-slate-800 dark:text-white overflow-hidden">
           <div className="container mx-auto px-4 md:px-6 max-w-7xl">
             <motion.div 
               className="flex flex-col items-center text-center space-y-6 mb-10"
@@ -191,7 +191,7 @@ export default function Home() {
                 Plan Your Dream Trip with <span className="bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-indigo-600">AI</span>
               </motion.h1>
               <motion.p 
-                className="text-l md:text-2xl text-slate-300 max-w-[800px]"
+                className="text-l md:text-2xl text-slate-600 dark:text-slate-300 max-w-[800px]"
                 variants={fadeInUp}
               >
                 Enter your destination, budget, and preferences to get a personalized travel itinerary
