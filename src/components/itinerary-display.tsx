@@ -445,7 +445,7 @@ export const ItineraryDisplay: React.FC<ItineraryDisplayProps> = ({
           </div>
         )}
         
-        <div className="flex justify-center gap-3 mt-6 no-print">
+        <div className="flex flex-wrap justify-center gap-3 mt-6 no-print">
           {/* Only show save button if not on a saved trip page and not in shared view */}
           {!isSharedView && !isSavedTripPage && (
             status === "authenticated" ? (
@@ -481,10 +481,10 @@ export const ItineraryDisplay: React.FC<ItineraryDisplayProps> = ({
               <Tooltip content="Sign in to save your trip and access it later">
                 <button 
                   onClick={handleSave}
-                  className="bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 px-4 py-2 rounded-lg font-medium flex items-center relative group hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+                  className="bg-green-100 hover:bg-green-200 dark:bg-green-900/30 dark:hover:bg-green-800/50 text-green-800 dark:text-green-300 px-4 py-2 rounded-lg font-medium flex items-center relative group transition-colors"
                 >
-                  <Lock className="mr-2 h-4 w-4" /> Save Trip
-                </button>
+                  <Save className="mr-2 h-4 w-4" /> Save Trip
+                </button> 
               </Tooltip>
             )
           )}
@@ -535,7 +535,7 @@ export const ItineraryDisplay: React.FC<ItineraryDisplayProps> = ({
         isOpen={isAuthModalOpen}
         onClose={() => setIsAuthModalOpen(false)}
         title="Sign In Required"
-        message="Please sign in to save your travel itinerary and access it later from any device."
+        message="Please sign in to unlock this feature or access your saved trips from any device."
       />
 
       {/* Trip Overview */}
@@ -760,7 +760,7 @@ export const ItineraryDisplay: React.FC<ItineraryDisplayProps> = ({
                         <p className="text-muted-foreground">{transport.description}</p>
                         
                         {transport.recommendedFor && (
-                          <span className="inline-block mt-2 bg-orange-100 dark:bg-orange-900/30 text-orange-800 dark:text-orange-300 px-2 py-1.5 rounded-full text-xs">
+                          <span className="inline-block mt-2 bg-orange-100 dark:bg-orange-900/30 text-orange-800 dark:text-orange-300 px-3 py-1 rounded-full text-xs">
                             Recommended for: {transport.recommendedFor}
                           </span>
                         )}
@@ -856,7 +856,7 @@ export const ItineraryDisplay: React.FC<ItineraryDisplayProps> = ({
       </div>
       )}
       
-      <div className="flex justify-center gap-4 pt-8 border-t border-slate-200 dark:border-slate-800 no-print">
+      <div className="flex flex-wrap justify-center gap-4 pt-8 border-t border-slate-200 dark:border-slate-800 no-print">
         {/* Only show save button if not on a saved trip page and not in shared view */}
         {!isSharedView && !isSavedTripPage && (
           status === "authenticated" ? (
@@ -892,13 +892,10 @@ export const ItineraryDisplay: React.FC<ItineraryDisplayProps> = ({
             <Tooltip content="Sign in to save your trip and access it later">
               <button 
                 onClick={handleSave}
-                className="bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 px-4 py-2 rounded-lg font-medium flex items-center relative group hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+                className="bg-green-100 hover:bg-green-200 dark:bg-green-900/30 dark:hover:bg-green-800/50 text-green-800 dark:text-green-300 px-4 py-2 rounded-lg font-medium flex items-center relative group transition-colors"
               >
-                <Lock className="mr-2 h-4 w-4" /> Save Trip
-                <span className="absolute -top-10 left-1/2 transform -translate-x-1/2 bg-black text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
-                  Sign in to save
-                </span>
-              </button>
+                <Save className="mr-2 h-4 w-4" /> Save Trip
+              </button> 
             </Tooltip>
           )
         )}
