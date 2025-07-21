@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -43,6 +43,39 @@ export function TravelPlannerForm({
 }: TravelPlannerFormProps) {
   const { data: session } = useSession();
 
+  const topRef = useRef<HTMLDivElement>(null);
+  const rightRef = useRef<HTMLDivElement>(null);
+  const bottomRef = useRef<HTMLDivElement>(null);
+  const leftRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const animateBorder = () => {
+      const now = Date.now() / 1000;
+      const speed = 0.5; // Animation speed
+
+      // Calculate positions based on time
+      const topX = Math.sin(now * speed) * 100;
+      const rightY = Math.cos(now * speed) * 100;
+      const bottomX = Math.sin(now * speed + Math.PI) * 100;
+      const leftY = Math.cos(now * speed + Math.PI) * 100;
+
+      // Apply positions to elements
+      if (topRef.current)
+        topRef.current.style.transform = `translateX(${topX}%)`;
+      if (rightRef.current)
+        rightRef.current.style.transform = `translateY(${rightY}%)`;
+      if (bottomRef.current)
+        bottomRef.current.style.transform = `translateX(${bottomX}%)`;
+      if (leftRef.current)
+        leftRef.current.style.transform = `translateY(${leftY}%)`;
+
+      requestAnimationFrame(animateBorder);
+    };
+
+    const animationId = requestAnimationFrame(animateBorder);
+    return () => cancelAnimationFrame(animationId);
+  }, []);
+
   const form = useForm<TripFormValues>({
     resolver: zodResolver(TripRequestSchema) as any,
     defaultValues: {
@@ -82,7 +115,32 @@ export function TravelPlannerForm({
   };
 
   return (
-    <Card className={cn("w-full max-w-3xl mx-auto border-slate-200 dark:border-slate-700 shadow-lg overflow-hidden", className)}>
+    <Card className={cn("w-full max-w-3xl mx-auto border-slate-200 dark:border-slate-700 shadow-lg overflow-hidden relative", className)}>
+      {/* Animated border elements */}
+      <div className="absolute top-0 left-0 w-full h-0.5 overflow-hidden">
+        <div
+          ref={topRef}
+          className="absolute top-0 left-0 w-full h-full bg-gradient-to-r from-transparent via-blue-500/50 to-transparent"
+        ></div>
+      </div>
+      <div className="absolute top-0 right-0 w-0.5 h-full overflow-hidden">
+        <div
+          ref={rightRef}
+          className="absolute top-0 left-0 w-full h-full bg-gradient-to-b from-transparent via-indigo-500/50 to-transparent"
+        ></div>
+      </div>
+      <div className="absolute bottom-0 left-0 w-full h-0.5 overflow-hidden">
+        <div
+          ref={bottomRef}
+          className="absolute top-0 left-0 w-full h-full bg-gradient-to-r from-transparent via-blue-500/50 to-transparent"
+        ></div>
+      </div>
+      <div className="absolute top-0 left-0 w-0.5 h-full overflow-hidden">
+        <div
+          ref={leftRef}
+          className="absolute top-0 left-0 w-full h-full bg-gradient-to-b from-transparent via-indigo-500/50 to-transparent"
+        ></div>
+      </div>
       <div className="bg-slate-50 dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 p-6">
         <h2 className="text-2xl font-bold">Plan Your Trip</h2>
         <p className="text-sm text-muted-foreground mt-1">
