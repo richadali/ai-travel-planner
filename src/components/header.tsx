@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { ThemeToggle } from "@/components/theme-toggle";
@@ -14,6 +14,7 @@ interface HeaderProps {
 
 export function Header({ className }: HeaderProps) {
   const [logoLoaded, setLogoLoaded] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
 
   // Check if logo exists
   useEffect(() => {
@@ -23,9 +24,26 @@ export function Header({ className }: HeaderProps) {
     img.onerror = () => setLogoLoaded(false);
   }, []);
 
+  useEffect(() => {
+    const handleScroll = () => {
+      setScrolled(window.scrollY > 0);
+    };
+
+    window.addEventListener("scroll", handleScroll);
+
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+    };
+  }, []);
+
   return (
-    <header className={cn("border-b border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 sticky top-0 z-40 shadow-sm", className)}>
-      <div className="container mx-auto flex h-16 items-center justify-between px-4 md:px-6 max-w-7xl">
+    <header className={cn("sticky top-0 z-40 w-full p-2", className)}>
+      <div
+        className={cn(
+          "container mx-auto flex h-14 max-w-7xl items-center justify-between rounded-lg border bg-background/80 px-2 backdrop-blur-sm transition-all duration-300 md:px-3",
+          scrolled ? "border-border/50 shadow-sm" : "border-transparent shadow-none"
+        )}
+      >
         <Link href="/" className="flex items-center">
           <div className="flex flex-row items-center space-x-2">
             {logoLoaded ? (
