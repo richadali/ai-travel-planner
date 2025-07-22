@@ -41,7 +41,7 @@ export function Header({ className }: HeaderProps) {
       <div
         className={cn(
           "container mx-auto flex h-14 max-w-7xl items-center justify-between rounded-lg border bg-background/80 px-2 backdrop-blur-sm transition-all duration-300 md:px-3",
-          scrolled ? "border-border/50 shadow-sm" : "border-transparent shadow-none"
+          scrolled ? "border-border/50 shadow-lg dark:shadow-lg dark:shadow-slate-500/10" : "border-transparent shadow-none"
         )}
       >
         <Link href="/" className="flex items-center">
