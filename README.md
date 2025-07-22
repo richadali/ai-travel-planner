@@ -1,6 +1,6 @@
 # AI Travel Planner
 
-An AI-powered travel planning application that generates personalized travel itineraries based on user preferences. Built with Next.js, TypeScript, Tailwind CSS, and Google Gemini AI.
+An AI-powered travel planning application that generates personalized travel itineraries based on user preferences. Built with Next.js 15, TypeScript, Tailwind CSS, and Google Gemini AI.
 
 [AI Travel Planner - aitravelplanner.richadali.dev](https://aitravelplanner.richadali.dev)
 
@@ -20,9 +20,10 @@ AI Travel Planner is a modern web application that leverages artificial intellig
 ### User Experience
 
 - **Responsive Design**: Optimized for all devices from mobile to desktop
-- **Dark/Light Mode**: Supports user preference for theme
+- **Dark/Light Mode**: Supports user preference for theme with smooth transitions
 - **Interactive Interface**: Clean, intuitive UI with modern design principles
 - **Real-time Generation**: Visual feedback during itinerary creation process
+- **Modern UI**: Glassmorphism effects, backdrop blur, and smooth animations
 
 ### Trip Management
 
@@ -33,7 +34,7 @@ AI Travel Planner is a modern web application that leverages artificial intellig
 
 ### User Authentication
 
-- **Secure Login**: Email/password and social login options
+- **Secure Login**: Google OAth Login
 - **User Profiles**: Personalized dashboard for each user
 - **Guest Access**: Generate itineraries without signing up
 - **Data Persistence**: Seamlessly transition from guest to authenticated user
@@ -51,34 +52,25 @@ The application includes a comprehensive analytics tracking system to monitor si
 - **Top Destinations**: Identifies most popular travel destinations
 - **Admin Dashboard**: Visual analytics dashboard with charts and filters
 
-### Admin Access
-
-To access the analytics dashboard, navigate to `/admin/analytics`. The dashboard provides insights into:
-
-- User engagement metrics
-- Popular destinations
-- Success/failure rates of itinerary generation
-- Performance statistics
-- Usage patterns over time
-
 ## Technical Architecture
 
 ### Frontend Architecture
 
-- **Framework**: Next.js 14+ with App Router for optimized routing and server components
+- **Framework**: Next.js 15 with App Router for optimized routing and server components
 - **Type Safety**: TypeScript for robust type checking and developer experience
-- **Styling**: Tailwind CSS for utility-first styling with custom theme configuration
+- **Styling**: Tailwind CSS 4 for utility-first styling with custom theme configuration
 - **Components**: Shadcn/ui component library for consistent design language
 - **Forms**: React Hook Form with Zod validation for type-safe form handling
 - **State Management**: React Context API and hooks for state management
 - **Animations**: Framer Motion for smooth UI transitions and animations
+- **UI Effects**: Glassmorphism, backdrop blur, and animated borders
 
 ### Backend Architecture
 
 - **API Routes**: Next.js API routes for serverless function architecture
 - **Database ORM**: Prisma for type-safe database operations
 - **Database**: MySQL for relational data storage
-- **Authentication**: NextAuth.js for secure user authentication
+- **Authentication**: NextAuth.js v5 for secure user authentication
 - **AI Integration**: Google Gemini AI API for intelligent itinerary generation
 - **PDF Generation**: Custom PDF generation service for downloadable itineraries
 - **Caching**: Strategic caching for improved performance
@@ -93,20 +85,13 @@ To access the analytics dashboard, navigate to `/admin/analytics`. The dashboard
 
 ## Security Features
 
-- **Authentication**: Secure user authentication with NextAuth.js
+- **Authentication**: Secure user authentication with NextAuth.js v5
 - **Authorization**: Role-based access control for admin features
 - **Data Validation**: Comprehensive input validation using Zod
 - **CSRF Protection**: Built-in protection against cross-site request forgery
 - **Rate Limiting**: API rate limiting to prevent abuse
 - **Secure Headers**: HTTP security headers for enhanced protection
 - **Environment Variables**: Sensitive information stored in environment variables
-
-## Privacy Considerations
-
-- IP addresses are stored for unique visitor counting but can be anonymized
-- User agents are stored for browser/device analytics
-- No personally identifiable information is collected unless a user is logged in
-- Clear privacy policy explaining data usage
 
 ## Project Structure
 
@@ -119,7 +104,7 @@ ai-travel-planner/
 │   │   ├── dashboard/    # User dashboard
 │   │   └── trips/        # Trip viewing pages
 │   ├── components/       # React components
-│   │   ├── ui/           # UI components
+│   │   ├── ui/           # UI components (Shadcn/ui)
 │   │   └── ...           # Feature components
 │   ├── lib/              # Utility functions and services
 │   │   ├── database.ts   # Database operations
@@ -137,20 +122,30 @@ ai-travel-planner/
 
 ### Frontend
 
-- Next.js 14+ (App Router)
-- TypeScript
-- Tailwind CSS
+- Next.js 15 (App Router)
+- React 19
+- TypeScript 5
+- Tailwind CSS 4
 - Shadcn/ui components
 - React Hook Form with Zod validation
 - Framer Motion
+- Lucide React icons
 
 ### Backend
 
 - Next.js API Routes
-- Prisma ORM
+- Prisma ORM 6
 - MySQL database
 - Google Gemini AI
-- NextAuth.js
+- NextAuth.js v5
+- JWT authentication
+
+### Development Tools
+
+- ESLint 9
+- TypeScript 5
+- Prisma CLI
+- Tailwind CSS 4
 
 ## Roadmap
 
@@ -161,8 +156,9 @@ Future enhancements planned for the AI Travel Planner:
 - **Booking Integration**: Add direct booking links for accommodations and activities
 - **Mobile App**: Develop companion mobile applications
 - **Collaborative Planning**: Allow multiple users to collaborate on trip planning
-- **Offline Mode**: Enhanced offline capabilities for travelers
 - **AI Personalization**: More advanced personalization based on user preferences and past trips
+- **Real-time Collaboration**: Live trip planning with multiple users
+- **Advanced Analytics**: More detailed insights and reporting features
 
 ## License
 
@@ -171,3 +167,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ## Author
 
 Developed by Richad Ali
+
+## Support
+
+For support or questions, please contact [richadali.dev](https://richadali.dev)
