@@ -40,7 +40,7 @@ export function Header({ className }: HeaderProps) {
     <header className={cn("sticky top-0 z-40 w-full p-2", className)}>
       <div
         className={cn(
-          "container mx-auto flex h-14 max-w-7xl items-center justify-between rounded-lg border  px-2 backdrop-blur-sm transition-all duration-300 md:px-3",
+          "container mx-auto flex h-14 max-w-7xl items-center justify-between rounded-lg border bg-background/80 px-2 backdrop-blur-sm transition-all duration-300 md:px-3",
           scrolled ? "border-border/50 shadow-lg dark:shadow-lg dark:shadow-slate-500/10" : "border-transparent shadow-none"
         )}
       >
